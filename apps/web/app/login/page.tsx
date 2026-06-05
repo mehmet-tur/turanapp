@@ -26,7 +26,7 @@ export default function LoginPage() {
     });
     const data = await response.json();
     if (!response.ok) {
-      setError(data?.error?.message ?? 'Giriş başarısız.');
+      setError('Demo hesabıyla giriş yapılamadı. API ve seed verisinin çalıştığından emin olun. ' + (data?.error?.message ?? ''));
       return;
     }
     localStorage.setItem('access_token', data.accessToken);

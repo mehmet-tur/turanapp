@@ -85,8 +85,8 @@ async function main() {
       user: ayseUser,
       slug: 'ayse-yildiz',
       publicName: 'Ayşe Yıldız',
-      headline: 'Oyuncu ve Yaratıcı Drama Eğitmeni',
-      bio: 'Kamera önü deneyimi, oyunculuk ve yaratıcı drama üzerine bire bir görüşmeler sunar.',
+      headline: 'Oyuncu',
+      bio: 'Dizi oyuncusu ve kamera önü kariyer mentorluğu',
       categoryId: eglence.id,
       segment: TalentSegment.ENTERTAINMENT,
       priceMinor: 250000,
@@ -96,8 +96,8 @@ async function main() {
       user: mertUser,
       slug: 'mert-kaya',
       publicName: 'Mert Kaya',
-      headline: 'Girişimci ve Melek Yatırımcı',
-      bio: 'Erken aşama girişimler, yatırım hazırlığı ve ürün stratejisi üzerine destek verir.',
+      headline: 'Girişim Mentoru',
+      bio: 'Startup fikri validasyonu',
       categoryId: girisim.id,
       segment: TalentSegment.EXPERTISE,
       priceMinor: 500000,
@@ -107,8 +107,8 @@ async function main() {
       user: zeynepUser,
       slug: 'zeynep-demir',
       publicName: 'Zeynep Demir',
-      headline: 'Beslenme Uzmanı ve İçerik Üreticisi',
-      bio: 'Sürdürülebilir beslenme alışkanlıkları ve içerik stratejisi konularında bire bir görüşme sunar.',
+      headline: 'Diyetisyen',
+      bio: '15 dakikalık hızlı beslenme danışmanlığı',
       categoryId: saglik.id,
       segment: TalentSegment.EXPERTISE,
       priceMinor: 150000,
@@ -118,8 +118,8 @@ async function main() {
       user: burakUser,
       slug: 'burak-can',
       publicName: 'Burak Can',
-      headline: 'Müzisyen ve Prodüktör',
-      bio: 'Müzik üretimi, sahne disiplini ve içerik kurgusu üzerine görüşme sunar.',
+      headline: 'Müzisyen',
+      bio: 'Şarkı yorumlama ve sahne deneyimi',
       categoryId: eglence.id,
       segment: TalentSegment.ENTERTAINMENT,
       priceMinor: 320000,
@@ -130,7 +130,7 @@ async function main() {
       slug: 'selin-aran',
       publicName: 'Selin Aran',
       headline: 'E-spor Koçu',
-      bio: 'Takım içi iletişim, maç analizi ve bireysel performans gelişimi odaklı görüşmeler yapar.',
+      bio: 'Performans ve strateji analizi',
       categoryId: girisim.id,
       segment: TalentSegment.ENTERTAINMENT,
       priceMinor: 280000,
@@ -141,7 +141,7 @@ async function main() {
       slug: 'ozan-turk',
       publicName: 'Ozan Türk',
       headline: 'Marka Danışmanı',
-      bio: 'Marka konumlandırma, dijital pazarlama ve büyüme stratejileri üzerine bire bir destek verir.',
+      bio: 'Kişisel marka ve sosyal medya stratejisi',
       categoryId: girisim.id,
       segment: TalentSegment.EXPERTISE,
       priceMinor: 420000,
@@ -248,8 +248,10 @@ async function main() {
 
   const ayse = talentProfiles[0];
   const sessionType = await prisma.sessionType.findFirstOrThrow({ where: { talentId: ayse.id }, orderBy: { createdAt: 'asc' } });
-  const bookingStart = addDays(now, 1, 14, 0);
-  const bookingEnd = addDays(now, 1, 14, 15);
+  
+  // Make the demo booking start 5 minutes ago and end in 10 minutes so it's active right now
+  const bookingStart = new Date(now.getTime() - 5 * 60 * 1000);
+  const bookingEnd = new Date(now.getTime() + 10 * 60 * 1000);
 
   const existingBooking = await prisma.booking.findFirst({
     where: {

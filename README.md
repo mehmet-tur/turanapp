@@ -1,11 +1,14 @@
 # Celebrity Call Platform
 
-## Gereksinimler
-- Node.js LTS
-- pnpm
-- Docker
+## Proje Özeti
+- Ünlüler ve uzmanlarla zaman bazlı canlı 1:1 görüşme platformu
+- Web ve mobile istemciler aynı NestJS API ile konuşur
+- Ödeme akışı mock provider ile, görüşme akışı mock video provider ile çalışır
+- `ADMIN`, `TALENT`, `USER` rolleri desteklenir
 
-## Hızlı başlangıç
+## Kurulum
+
+### Docker ile
 ```bash
 pnpm install
 cp .env.example .env
@@ -18,44 +21,69 @@ pnpm dev:web
 pnpm dev:mobile
 ```
 
-## Lokalde sıfırdan çalıştırma
-1. `.env.example` dosyasını `.env` olarak kopyalayın.
-2. PostgreSQL servisini `docker compose up -d postgres` ile başlatın.
-3. Prisma client ve migration çalıştırın.
-4. Seed ile demo veri yükleyin.
-5. API, web ve mobile uygulamalarını ayrı terminallerde başlatın.
+### Local PostgreSQL fallback
+```bash
+brew install postgresql@16
+brew services start postgresql@16
+createdb unluapp
+cp .env.example .env
+# DATABASE_URL değerini local postgres'e göre düzenle
+pnpm db:migrate
+pnpm db:seed
+```
 
-## Demo hesaplar
+Örnek local bağlantı:
+```env
+DATABASE_URL="postgresql://localhost:5432/unluapp?schema=public"
+```
+
+## Demo Hesapları
 - Admin: `admin@unluapp.local` / `Password123!`
 - Kullanıcı: `demo@unluapp.local` / `Password123!`
-- Talent: `ayse-yildiz@unluapp.local` / `Password123!`
+- Uzman: `talent@unluapp.local` / `Password123!`
 
-## Servis URL’leri
-- API health: `http://localhost:3001/api/health`
-- Swagger: `http://localhost:3001/docs`
+## Demo Akışı
+1. Web landing sayfasını açın.
+2. Demo kullanıcı ile giriş yapın.
+3. Uzman listesinden bir profil seçin.
+4. Uygun slot seçip rezervasyon oluşturun.
+5. Rezervasyon detay sayfasına gidin.
+6. Görüşme odasına girin.
+7. Pre-call lobby’de kamera/mikrofonu test edin.
+8. Mock görüşmeyi başlatın ve bitirin.
+9. Admin panelden booking durumunu kontrol edin.
+10. Talent dashboard ile aynı booking’i uzman tarafından görüntüleyin.
+
+## URL’ler
 - Web: `http://localhost:3000`
-- Admin: `http://localhost:3000/admin/login`
+- API: `http://localhost:3001/api`
+- Health: `http://localhost:3001/api/health`
+- Admin: `http://localhost:3000/admin/dashboard`
+- Talent: `http://localhost:3000/talent/dashboard`
+- Bookings: `http://localhost:3000/bookings`
 
-## MVP kapsamı
-- Kullanıcı auth
-- Talent listeleme ve detay
-- Availability window ve slot üretimi
-- Booking
-- Mock payment
-- Mock video session
-- Admin dashboard
-- Admin talent approval
-- KVKK / camera-audio consent log
+## Scriptler
+- `pnpm dev`: Tüm workspace süreçlerini paralel başlatır
+- `pnpm dev:api`: NestJS API
+- `pnpm dev:web`: Next.js web
+- `pnpm dev:mobile`: Expo mobile
+- `pnpm db:generate`: Prisma client üretir
+- `pnpm db:migrate`: Development migration uygular
+- `pnpm db:seed`: Demo veri yükler
+- `pnpm smoke:api`: Çalışan API üzerinde smoke test zinciri çalıştırır
+- `pnpm lint`: Tüm workspace lint komutlarını çalıştırır
+- `pnpm test`: Tüm workspace test komutlarını çalıştırır
 
 ## Mobil localhost notu
 - iOS Simulator için `http://localhost:3001` kullanılabilir.
-- Android Emulator için gerekirse `http://10.0.2.2:3001` kullanılmalıdır.
+- Android Emulator için `http://10.0.2.2:3001` kullanılmalıdır.
 - Fiziksel cihazda bilgisayarın LAN IP’si kullanılmalıdır.
 
-## Teknik notlar
-- Fiyat hesabı her zaman sunucuda yapılır.
-- Gerçek ödeme ve video sağlayıcı entegrasyonları bu fazda mock katman üzerinden çalışır.
-- Booking çakışması service katmanında engellenir; slot tekrar kullanımı için partial unique index ihtiyacı sonraki fazda ele alınır.
-
-## Ertelenen işler
-Bkz. `/Users/investintech/Developer/unluapp/docs/deferred.md`
+## Kalanlar
+- Gerçek iyzico marketplace entegrasyonu
+- Gerçek Agora RTC token üretimi
+- Gerçek KVKK hukuk metinleri
+- Recording ve cloud recording
+- Moderation ve notification
+- Payment reconciliation
+- Production observability

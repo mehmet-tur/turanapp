@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint || eslint . || echo 'Web lint yapılandırması henüz tanımlı değil'",
+    "lint": "eslint app components lib --ext .ts,.tsx",
     "test": "echo \"No web tests yet\"",
     "format": "prettier --write \"app/**/*.tsx\" \"**/*.ts\""
   },

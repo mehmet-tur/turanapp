@@ -6,11 +6,20 @@ import {
 } from '@nestjs/common';
 import { BookingStatus, Prisma, TalentStatus, UserRole } from '@prisma/client';
 import slugify from 'slugify';
-import { BLOCKING_BOOKING_STATUSES } from '@celebrity-call/shared';
 import { addMinutes, overlaps } from '../common/date.utils';
 import { AuditService } from '../common/audit.service';
 import { PrismaService } from '../common/prisma.service';
 import { AvailabilityRuleDto, TalentApplyDto } from './dto';
+
+const BLOCKING_BOOKING_STATUSES: BookingStatus[] = [
+  BookingStatus.PAYMENT_PENDING,
+  BookingStatus.CONFIRMED,
+  BookingStatus.READY,
+  BookingStatus.IN_PROGRESS,
+  BookingStatus.COMPLETED,
+  BookingStatus.SETTLEMENT_PENDING,
+  BookingStatus.SETTLED,
+];
 
 @Injectable()
 export class TalentsService {
@@ -187,12 +196,14 @@ export class TalentsService {
     if (!sessionType) throw new BadRequestException({ code: 'VALIDATION_ERROR', message: 'Aktif görüşme tipi bulunamadı.' });
     const fromDate = from ? new Date(`${from}T00:00:00.000Z`) : new Date();
     const toDate = to ? new Date(`${to}T23:59:59.999Z`) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const minNoticeBoundary = new Date(Date.now() + talent.minimumNoticeHours * 60 * 60 * 1000);
     const slots: Array<Record<string, unknown>> = [];
     for (const window of talent.availabilityWindows) {
       if (window.endsAt < fromDate || window.startsAt > toDate) continue;
       for (let cursor = new Date(window.startsAt); addMinutes(cursor, window.slotDurationMinutes) <= window.endsAt; cursor = addMinutes(cursor, window.slotDurationMinutes + window.bufferMinutes)) {
         const slotEnd = addMinutes(cursor, window.slotDurationMinutes);
         if (cursor < new Date()) continue;
+        if (cursor < minNoticeBoundary) continue;
         if (talent.bookings.some((booking) => overlaps(cursor, slotEnd, booking.startsAt, booking.endsAt))) continue;
         slots.push({
           startsAt: cursor.toISOString(),

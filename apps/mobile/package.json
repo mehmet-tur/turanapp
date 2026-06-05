@@ -7,8 +7,8 @@
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "build": "echo 'No mobile build yet'",
-    "lint": "echo 'Expo lint yapılandırması Faz 2 için ertelendi'",
+    "build": "tsc --noEmit",
+    "lint": "eslint app src lib --ext .ts,.tsx",
     "test": "echo \"No mobile tests yet\"",
     "format": "prettier --write \"app/**/*.tsx\" \"src/**/*.ts\" \"src/**/*.tsx\""
   },

@@ -1,3 +1,5 @@
+type RequestInit = globalThis.RequestInit;
+
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api';
 
 export async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {

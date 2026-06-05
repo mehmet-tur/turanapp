@@ -1,6 +1,6 @@
 import { z } from 'zod';
-import { ConsentType, TalentSegment } from './types';
-import { SESSION_DURATIONS } from './constants';
+import { ConsentType, TalentSegment } from './types.js';
+import { SESSION_DURATIONS } from './constants.js';
 
 export const consentSchema = z.object({
   type: z.nativeEnum(ConsentType),

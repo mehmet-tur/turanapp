@@ -71,6 +71,10 @@ async function main() {
   const ayseUser = await upsertUser({ email: 'talent@unluapp.local', firstName: 'Ayşe', lastName: 'Yıldız', roles: [UserRole.CUSTOMER, UserRole.TALENT] });
   const mertUser = await upsertUser({ email: 'mert-kaya@unluapp.local', firstName: 'Mert', lastName: 'Kaya', roles: [UserRole.CUSTOMER, UserRole.TALENT] });
   const zeynepUser = await upsertUser({ email: 'zeynep-demir@unluapp.local', firstName: 'Zeynep', lastName: 'Demir', roles: [UserRole.CUSTOMER, UserRole.TALENT] });
+  const burakUser = await upsertUser({ email: 'burak-can@unluapp.local', firstName: 'Burak', lastName: 'Can', roles: [UserRole.CUSTOMER, UserRole.TALENT] });
+  const selinUser = await upsertUser({ email: 'selin-aran@unluapp.local', firstName: 'Selin', lastName: 'Aran', roles: [UserRole.CUSTOMER, UserRole.TALENT] });
+  const ozanUser = await upsertUser({ email: 'ozan-turk@unluapp.local', firstName: 'Ozan', lastName: 'Türk', roles: [UserRole.CUSTOMER, UserRole.TALENT] });
+  const pendingUser = await upsertUser({ email: 'pending@unluapp.local', firstName: 'Bekleyen', lastName: 'Uzman', roles: [UserRole.CUSTOMER] });
 
   const eglence = await prisma.category.findUniqueOrThrow({ where: { slug: 'eglence' } });
   const girisim = await prisma.category.findUniqueOrThrow({ where: { slug: 'is-ve-girisimcilik' } });
@@ -110,6 +114,39 @@ async function main() {
       priceMinor: 150000,
       featured: false,
     },
+    {
+      user: burakUser,
+      slug: 'burak-can',
+      publicName: 'Burak Can',
+      headline: 'Müzisyen ve Prodüktör',
+      bio: 'Müzik üretimi, sahne disiplini ve içerik kurgusu üzerine görüşme sunar.',
+      categoryId: eglence.id,
+      segment: TalentSegment.ENTERTAINMENT,
+      priceMinor: 320000,
+      featured: false,
+    },
+    {
+      user: selinUser,
+      slug: 'selin-aran',
+      publicName: 'Selin Aran',
+      headline: 'E-spor Koçu',
+      bio: 'Takım içi iletişim, maç analizi ve bireysel performans gelişimi odaklı görüşmeler yapar.',
+      categoryId: girisim.id,
+      segment: TalentSegment.ENTERTAINMENT,
+      priceMinor: 280000,
+      featured: false,
+    },
+    {
+      user: ozanUser,
+      slug: 'ozan-turk',
+      publicName: 'Ozan Türk',
+      headline: 'Marka Danışmanı',
+      bio: 'Marka konumlandırma, dijital pazarlama ve büyüme stratejileri üzerine bire bir destek verir.',
+      categoryId: girisim.id,
+      segment: TalentSegment.EXPERTISE,
+      priceMinor: 420000,
+      featured: false,
+    },
   ];
 
   const now = new Date();
@@ -145,16 +182,32 @@ async function main() {
       },
     });
 
-    await prisma.sessionType.deleteMany({ where: { talentId: profile.id } });
-    await prisma.sessionType.create({
-      data: {
-        talentId: profile.id,
-        title: '15 Dakikalık Bire Bir Görüşme',
-        durationMinutes: 15,
-        priceMinor: item.priceMinor,
-        currency: 'TRY',
-      },
+    const existingSessionType = await prisma.sessionType.findFirst({
+      where: { talentId: profile.id },
+      orderBy: { createdAt: 'asc' },
     });
+    if (existingSessionType) {
+      await prisma.sessionType.update({
+        where: { id: existingSessionType.id },
+        data: {
+          title: '15 Dakikalık Bire Bir Görüşme',
+          durationMinutes: 15,
+          priceMinor: item.priceMinor,
+          currency: 'TRY',
+          isActive: true,
+        },
+      });
+    } else {
+      await prisma.sessionType.create({
+        data: {
+          talentId: profile.id,
+          title: '15 Dakikalık Bire Bir Görüşme',
+          durationMinutes: 15,
+          priceMinor: item.priceMinor,
+          currency: 'TRY',
+        },
+      });
+    }
 
     await replaceAvailabilityWindows(profile.id, [
       { startsAt: addDays(now, 1, 14, 0), endsAt: addDays(now, 1, 16, 0) },
@@ -163,6 +216,35 @@ async function main() {
 
     talentProfiles.push(profile);
   }
+
+  await prisma.talentProfile.upsert({
+    where: { userId: pendingUser.id },
+    update: {
+      slug: 'bekleyen-uzman',
+      publicName: 'Bekleyen Uzman',
+      headline: 'Onay bekleyen demo uzman',
+      bio: 'Admin onayı bekleyen demo uzman profili.',
+      segment: TalentSegment.EXPERTISE,
+      status: TalentStatus.PENDING_REVIEW,
+      approvedAt: null,
+      rejectedReason: null,
+      isFeatured: false,
+      categories: {
+        deleteMany: {},
+        create: [{ categoryId: girisim.id }],
+      },
+    },
+    create: {
+      userId: pendingUser.id,
+      slug: 'bekleyen-uzman',
+      publicName: 'Bekleyen Uzman',
+      headline: 'Onay bekleyen demo uzman',
+      bio: 'Admin onayı bekleyen demo uzman profili.',
+      segment: TalentSegment.EXPERTISE,
+      status: TalentStatus.PENDING_REVIEW,
+      categories: { create: [{ categoryId: girisim.id }] },
+    },
+  });
 
   const ayse = talentProfiles[0];
   const sessionType = await prisma.sessionType.findFirstOrThrow({ where: { talentId: ayse.id }, orderBy: { createdAt: 'asc' } });

@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { AdminShell } from '../../../components/AdminShell';
+import { Card } from '../../../components/Card';
+import { PageHeader } from '../../../components/PageHeader';
 
 export default function AdminDashboardPage() {
   const [data, setData] = useState<any>(null);
@@ -24,14 +27,14 @@ export default function AdminDashboardPage() {
     : [];
 
   return (
-    <main style={{ padding: 32 }}>
-      <h1>Admin Dashboard</h1>
+    <AdminShell>
+      <PageHeader title="Admin Dashboard" description="Platformın ana metrikleri ve yönetim kısayolları." />
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16 }}>
         {cards.map(([label, value]) => (
-          <div key={String(label)} style={{ background: 'white', borderRadius: 16, padding: 20 }}>
+          <Card key={String(label)}>
             <div style={{ color: '#666' }}>{label}</div>
             <strong>{String(value)}</strong>
-          </div>
+          </Card>
         ))}
       </div>
       <nav style={{ marginTop: 24, display: 'flex', gap: 16 }}>
@@ -39,6 +42,6 @@ export default function AdminDashboardPage() {
         <a href="/admin/bookings">Rezervasyonlar</a>
         <a href="/admin/users">Kullanıcılar</a>
       </nav>
-    </main>
+    </AdminShell>
   );
 }

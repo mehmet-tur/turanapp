@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { AdminShell } from '../../../components/AdminShell';
+import { PageHeader } from '../../../components/PageHeader';
 
 export default function AdminUsersPage() {
   const [items, setItems] = useState<any[]>([]);
@@ -15,8 +17,8 @@ export default function AdminUsersPage() {
   }, []);
 
   return (
-    <main style={{ padding: 32 }}>
-      <h1>Kullanıcılar</h1>
+    <AdminShell>
+      <PageHeader title="Kullanıcılar" description="Sistem kullanıcıları ve roller." />
       <table style={{ width: '100%', background: 'white' }}>
         <thead>
           <tr>
@@ -37,6 +39,6 @@ export default function AdminUsersPage() {
           ))}
         </tbody>
       </table>
-    </main>
+    </AdminShell>
   );
 }

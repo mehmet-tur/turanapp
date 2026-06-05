@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { AdminShell } from '../../../components/AdminShell';
+import { Badge } from '../../../components/Badge';
+import { PageHeader } from '../../../components/PageHeader';
 
 export default function AdminBookingsPage() {
   const [items, setItems] = useState<any[]>([]);
@@ -14,9 +17,19 @@ export default function AdminBookingsPage() {
       .then(setItems);
   }, []);
 
+  async function setStatus(id: string, status: string) {
+    const token = sessionStorage.getItem('admin_token');
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api'}/admin/bookings/${id}/status`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
+      body: JSON.stringify({ status }),
+    });
+    setItems((current) => current.map((item) => (item.id === id ? { ...item, status } : item)));
+  }
+
   return (
-    <main style={{ padding: 32 }}>
-      <h1>Rezervasyonlar</h1>
+    <AdminShell>
+      <PageHeader title="Rezervasyonlar" description="Durum yönetimi ve demo operasyon kontrolleri." />
       <table style={{ width: '100%', background: 'white' }}>
         <thead>
           <tr>
@@ -35,12 +48,19 @@ export default function AdminBookingsPage() {
               <td>{item.customer.firstName} {item.customer.lastName}</td>
               <td>{item.talent.publicName}</td>
               <td>{new Date(item.startsAt).toLocaleString('tr-TR')}</td>
-              <td>{item.status}</td>
+              <td><Badge>{item.status}</Badge></td>
               <td>{(item.priceMinor / 100).toLocaleString('tr-TR')} {item.currency}</td>
+              <td>
+                <select defaultValue={item.status} onChange={(event) => setStatus(item.id, event.target.value)}>
+                  {['CONFIRMED', 'IN_PROGRESS', 'COMPLETED', 'REFUNDED', 'CANCELLED_BY_CUSTOMER'].map((status) => (
+                    <option key={status} value={status}>{status}</option>
+                  ))}
+                </select>
+              </td>
             </tr>
           ))}
         </tbody>
       </table>
-    </main>
+    </AdminShell>
   );
 }

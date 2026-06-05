@@ -1,5 +1,6 @@
 'use client';
 
+import type { FormEvent } from 'react';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 
@@ -9,7 +10,7 @@ export default function AdminLoginPage() {
   const [password, setPassword] = useState('Admin123!ChangeMe');
   const [error, setError] = useState('');
 
-  async function submit(event: React.FormEvent) {
+  async function submit(event: FormEvent) {
     event.preventDefault();
     setError('');
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api'}/auth/login`, {

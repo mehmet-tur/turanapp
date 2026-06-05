@@ -1,3 +1,5 @@
+type RequestInit = globalThis.RequestInit;
+
 const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3001/api';
 
 let accessToken: string | null = null;

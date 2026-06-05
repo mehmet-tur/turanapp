@@ -5,7 +5,6 @@
   "scripts": {
     "build": "echo 'config build not required'",
     "test": "echo 'No config tests yet'",
-    "lint": "echo 'No config lint yet'",
     "format": "echo 'No config format targets'"
   }
 }

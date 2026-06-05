@@ -1,6 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { AdminShell } from '../../../components/AdminShell';
+import { Badge } from '../../../components/Badge';
+import { PageHeader } from '../../../components/PageHeader';
 
 export default function AdminTalentsPage() {
   const [items, setItems] = useState<any[]>([]);
@@ -25,8 +28,8 @@ export default function AdminTalentsPage() {
   }
 
   return (
-    <main style={{ padding: 32 }}>
-      <h1>Uzman Başvuruları</h1>
+    <AdminShell>
+      <PageHeader title="Uzman Başvuruları" description="Onayla, reddet ve mevcut uzman listesini gözden geçir." />
       <table style={{ width: '100%', background: 'white', borderRadius: 16, padding: 16 }}>
         <thead>
           <tr>
@@ -44,7 +47,7 @@ export default function AdminTalentsPage() {
               <td>{item.publicName}</td>
               <td>{item.segment}</td>
               <td>{item.headline}</td>
-              <td>{item.status}</td>
+              <td><Badge>{item.status}</Badge></td>
               <td>{new Date(item.createdAt).toLocaleString('tr-TR')}</td>
               <td>
                 <button onClick={() => review(item.id, 'APPROVE')}>Approve</button>
@@ -54,6 +57,6 @@ export default function AdminTalentsPage() {
           ))}
         </tbody>
       </table>
-    </main>
+    </AdminShell>
   );
 }

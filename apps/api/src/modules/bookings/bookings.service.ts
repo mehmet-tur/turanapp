@@ -1,6 +1,5 @@
 import { BadRequestException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { BookingStatus, ConsentType, PaymentProvider, PaymentStatus } from '@prisma/client';
-import { BLOCKING_BOOKING_STATUSES } from '@celebrity-call/shared';
 import { AuditService } from '../common/audit.service';
 import { addMinutes, overlaps } from '../common/date.utils';
 import { PermissionsService } from '../common/permissions.service';
@@ -8,6 +7,16 @@ import { PrismaService } from '../common/prisma.service';
 import { MockPaymentProvider } from '../payments/payment.providers';
 import { MockVideoProvider } from '../video/video.providers';
 import { BookingCreateDto, BookingQuoteDto, CancelBookingDto } from './dto';
+
+const BLOCKING_BOOKING_STATUSES: BookingStatus[] = [
+  BookingStatus.PAYMENT_PENDING,
+  BookingStatus.CONFIRMED,
+  BookingStatus.READY,
+  BookingStatus.IN_PROGRESS,
+  BookingStatus.COMPLETED,
+  BookingStatus.SETTLEMENT_PENDING,
+  BookingStatus.SETTLED,
+];
 
 @Injectable()
 export class BookingsService {

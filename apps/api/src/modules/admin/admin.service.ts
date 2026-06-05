@@ -1,4 +1,4 @@
-import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { BookingStatus, TalentStatus, UserRole } from '@prisma/client';
 import { AuditService } from '../common/audit.service';
 import { PrismaService } from '../common/prisma.service';

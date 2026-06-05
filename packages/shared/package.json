@@ -2,13 +2,12 @@
   "name": "@celebrity-call/shared",
   "version": "0.0.1",
   "private": true,
-  "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
   "scripts": {
     "build": "echo 'shared build not required'",
     "test": "echo 'No shared tests yet'",
-    "lint": "echo 'No shared lint yet'",
+    "lint": "eslint src --ext .ts",
     "format": "prettier --write \"src/**/*.ts\""
   },
   "dependencies": {

@@ -7,7 +7,7 @@
     "smoke": "tsx scripts/smoke.ts",
     "build": "nest build",
     "start": "nest start",
-    "lint": "eslint \"src/**/*.ts\" \"prisma/**/*.ts\" \"test/**/*.ts\" || echo 'API lint yapılandırması henüz tanımlı değil'",
+    "lint": "eslint src prisma test scripts --ext .ts",
     "format": "prettier --write \"src/**/*.ts\" \"prisma/**/*.ts\" \"test/**/*.ts\"",
     "test": "tsx --test test/*.spec.ts",
     "test:e2e": "jest --config ./test/jest-e2e.json",

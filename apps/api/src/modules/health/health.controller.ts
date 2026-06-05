@@ -1,16 +1,14 @@
 import { Controller, Get } from '@nestjs/common';
 import { Public } from '../common/auth.decorators';
+import { HealthService } from './health.service';
 
 @Controller('health')
 export class HealthController {
+  constructor(private readonly healthService: HealthService) {}
+
   @Public()
   @Get()
   getHealth() {
-    return {
-      status: 'ok',
-      service: 'unluapp-api',
-      db: 'ok',
-      timestamp: new Date().toISOString(),
-    };
+    return this.healthService.getHealth();
   }
 }

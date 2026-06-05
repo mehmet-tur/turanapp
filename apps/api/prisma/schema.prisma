@@ -1,0 +1,336 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum UserRole {
+  CUSTOMER
+  TALENT
+  MANAGER
+  ADMIN
+}
+
+enum TalentSegment {
+  ENTERTAINMENT
+  EXPERTISE
+}
+
+enum TalentStatus {
+  DRAFT
+  PENDING_REVIEW
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum BookingStatus {
+  DRAFT
+  PAYMENT_PENDING
+  CONFIRMED
+  READY
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED_BY_CUSTOMER
+  CANCELLED_BY_TALENT
+  NO_SHOW_CUSTOMER
+  NO_SHOW_TALENT
+  REFUND_PENDING
+  REFUNDED
+  SETTLEMENT_PENDING
+  SETTLED
+  DISPUTED
+}
+
+enum PaymentStatus {
+  INITIATED
+  AUTHORIZED
+  CAPTURED
+  CANCELLED
+  REFUNDED
+  FAILED
+}
+
+enum ConsentType {
+  TERMS_OF_SERVICE
+  PRIVACY_POLICY
+  CAMERA_AUDIO_PROCESSING
+  MARKETING_COMMUNICATION
+  VIDEO_RECORDING_OPTIONAL
+}
+
+enum VideoProvider {
+  MOCK
+  AGORA
+}
+
+enum PaymentProvider {
+  MOCK
+  IYZICO
+}
+
+model User {
+  id                 String      @id @default(cuid())
+  email              String      @unique
+  phone              String?     @unique
+  passwordHash       String
+  firstName          String
+  lastName           String
+  displayName        String?
+  avatarUrl          String?
+  roles              UserRole[]
+  isEmailVerified    Boolean     @default(false)
+  isPhoneVerified    Boolean     @default(false)
+  isActive           Boolean     @default(true)
+  lastLoginAt        DateTime?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  talentProfile      TalentProfile?
+  managedTalents     ManagerTalent[] @relation("ManagerUser")
+  bookingsAsCustomer Booking[]       @relation("CustomerBookings")
+  consentLogs        ConsentLog[]
+  refreshTokens      RefreshToken[]
+  auditLogs          AuditLog[]
+
+  @@index([email])
+  @@index([createdAt])
+}
+
+model RefreshToken {
+  id          String   @id @default(cuid())
+  userId      String
+  tokenHash   String
+  expiresAt   DateTime
+  revokedAt   DateTime?
+  createdAt   DateTime @default(now())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Category {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  talents     TalentCategory[]
+
+  @@index([slug])
+  @@index([isActive, sortOrder])
+}
+
+model TalentProfile {
+  id                    String        @id @default(cuid())
+  userId                String        @unique
+  slug                  String        @unique
+  publicName            String
+  headline              String
+  bio                   String
+  segment               TalentSegment
+  status                TalentStatus  @default(DRAFT)
+  profileImageUrl       String?
+  coverImageUrl         String?
+  introVideoUrl         String?
+  baseCurrency          String        @default("TRY")
+  minimumNoticeHours    Int           @default(24)
+  cancellationHours     Int           @default(24)
+  platformCommissionBps Int           @default(1500)
+  isFeatured            Boolean       @default(false)
+  approvedAt            DateTime?
+  rejectedReason        String?
+  createdAt             DateTime      @default(now())
+  updatedAt             DateTime      @updatedAt
+  user                  User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  categories            TalentCategory[]
+  sessionTypes          SessionType[]
+  availabilityRules     AvailabilityRule[]
+  availabilityBlocks    AvailabilityBlock[]
+  bookings              Booking[]
+  managers              ManagerTalent[] @relation("TalentManaged")
+
+  @@index([slug])
+  @@index([status, isFeatured])
+  @@index([segment, status])
+}
+
+model TalentCategory {
+  talentId    String
+  categoryId  String
+  createdAt   DateTime @default(now())
+  talent      TalentProfile @relation(fields: [talentId], references: [id], onDelete: Cascade)
+  category    Category      @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@id([talentId, categoryId])
+}
+
+model ManagerTalent {
+  id          String   @id @default(cuid())
+  managerId   String
+  talentId    String
+  createdAt   DateTime @default(now())
+  manager     User          @relation("ManagerUser", fields: [managerId], references: [id], onDelete: Cascade)
+  talent      TalentProfile @relation("TalentManaged", fields: [talentId], references: [id], onDelete: Cascade)
+
+  @@unique([managerId, talentId])
+  @@index([managerId])
+  @@index([talentId])
+}
+
+model SessionType {
+  id              String   @id @default(cuid())
+  talentId        String
+  title           String
+  description     String?
+  durationMinutes Int
+  priceMinor      Int
+  currency        String   @default("TRY")
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  talent          TalentProfile @relation(fields: [talentId], references: [id], onDelete: Cascade)
+  bookings        Booking[]
+
+  @@index([talentId, isActive])
+  @@index([durationMinutes])
+}
+
+model AvailabilityRule {
+  id          String   @id @default(cuid())
+  talentId    String
+  weekday     Int
+  startTime   String
+  endTime     String
+  timezone    String   @default("Europe/Istanbul")
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  talent      TalentProfile @relation(fields: [talentId], references: [id], onDelete: Cascade)
+
+  @@index([talentId, weekday, isActive])
+}
+
+model AvailabilityBlock {
+  id          String   @id @default(cuid())
+  talentId    String
+  startsAt    DateTime
+  endsAt      DateTime
+  reason      String?
+  createdAt   DateTime @default(now())
+  talent      TalentProfile @relation(fields: [talentId], references: [id], onDelete: Cascade)
+
+  @@index([talentId, startsAt, endsAt])
+}
+
+model Booking {
+  id                 String        @id @default(cuid())
+  customerId         String
+  talentId           String
+  sessionTypeId      String
+  status             BookingStatus @default(PAYMENT_PENDING)
+  startsAt           DateTime
+  endsAt             DateTime
+  timezone           String        @default("Europe/Istanbul")
+  customerNote       String?
+  internalNote       String?
+  priceMinor         Int
+  currency           String        @default("TRY")
+  platformFeeMinor   Int
+  talentPayoutMinor  Int
+  paymentId          String?
+  videoRoomId        String?
+  cancelledAt        DateTime?
+  cancellationReason String?
+  completedAt        DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  customer           User          @relation("CustomerBookings", fields: [customerId], references: [id], onDelete: Restrict)
+  talent             TalentProfile @relation(fields: [talentId], references: [id], onDelete: Restrict)
+  sessionType        SessionType   @relation(fields: [sessionTypeId], references: [id], onDelete: Restrict)
+  payment            PaymentIntent?
+  videoRoom          VideoRoom?
+
+  @@index([customerId, startsAt])
+  @@index([talentId, startsAt])
+  @@index([status])
+  @@unique([talentId, startsAt, endsAt])
+}
+
+model PaymentIntent {
+  id                  String          @id @default(cuid())
+  bookingId           String          @unique
+  provider            PaymentProvider @default(MOCK)
+  providerReference   String?
+  status              PaymentStatus   @default(INITIATED)
+  amountMinor         Int
+  currency            String          @default("TRY")
+  platformFeeMinor    Int
+  talentPayoutMinor   Int
+  rawProviderResponse Json?
+  authorizedAt        DateTime?
+  capturedAt          DateTime?
+  refundedAt          DateTime?
+  failedReason        String?
+  createdAt           DateTime        @default(now())
+  updatedAt           DateTime        @updatedAt
+  booking             Booking         @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([provider, providerReference])
+}
+
+model VideoRoom {
+  id               String        @id @default(cuid())
+  bookingId        String        @unique
+  provider         VideoProvider @default(MOCK)
+  channelName      String        @unique
+  providerRoomId   String?
+  startsAt         DateTime
+  endsAt           DateTime
+  recordingEnabled Boolean       @default(false)
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  booking          Booking       @relation(fields: [bookingId], references: [id], onDelete: Cascade)
+
+  @@index([startsAt, endsAt])
+}
+
+model ConsentLog {
+  id         String      @id @default(cuid())
+  userId     String
+  type       ConsentType
+  version    String
+  accepted   Boolean
+  ipAddress  String?
+  userAgent  String?
+  metadata   Json?
+  createdAt  DateTime    @default(now())
+  user       User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, type])
+  @@index([createdAt])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  actorUserId String?
+  action      String
+  entityType  String
+  entityId    String?
+  metadata    Json?
+  ipAddress   String?
+  userAgent   String?
+  createdAt   DateTime @default(now())
+  actor       User?    @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([actorUserId])
+  @@index([entityType, entityId])
+  @@index([createdAt])
+}

@@ -1,0 +1,10 @@
+export const SESSION_DURATIONS = [15, 30, 45, 60] as const;
+export const BLOCKING_BOOKING_STATUSES = [
+  'PAYMENT_PENDING',
+  'CONFIRMED',
+  'READY',
+  'IN_PROGRESS',
+  'COMPLETED',
+  'SETTLEMENT_PENDING',
+  'SETTLED',
+] as const;

@@ -1,0 +1,24 @@
+{
+  "name": "celebrity-call-platform",
+  "private": true,
+  "packageManager": "pnpm@10.11.0",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "format": "prettier --write .",
+    "db:up": "docker compose up -d postgres redis mailpit",
+    "db:down": "docker compose down",
+    "db:migrate": "pnpm --filter api prisma:migrate",
+    "db:seed": "pnpm --filter api seed",
+    "api:dev": "pnpm --filter api dev",
+    "web:dev": "pnpm --filter web dev",
+    "mobile:dev": "pnpm --filter mobile start"
+  },
+  "devDependencies": {
+    "prettier": "^3.5.3",
+    "turbo": "^2.5.4",
+    "typescript": "^5.8.3"
+  }
+}

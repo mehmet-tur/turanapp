@@ -1,0 +1,68 @@
+export enum UserRole {
+  CUSTOMER = 'CUSTOMER',
+  TALENT = 'TALENT',
+  MANAGER = 'MANAGER',
+  ADMIN = 'ADMIN',
+}
+
+export enum TalentSegment {
+  ENTERTAINMENT = 'ENTERTAINMENT',
+  EXPERTISE = 'EXPERTISE',
+}
+
+export enum TalentStatus {
+  DRAFT = 'DRAFT',
+  PENDING_REVIEW = 'PENDING_REVIEW',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  SUSPENDED = 'SUSPENDED',
+}
+
+export enum BookingStatus {
+  DRAFT = 'DRAFT',
+  PAYMENT_PENDING = 'PAYMENT_PENDING',
+  CONFIRMED = 'CONFIRMED',
+  READY = 'READY',
+  IN_PROGRESS = 'IN_PROGRESS',
+  COMPLETED = 'COMPLETED',
+  CANCELLED_BY_CUSTOMER = 'CANCELLED_BY_CUSTOMER',
+  CANCELLED_BY_TALENT = 'CANCELLED_BY_TALENT',
+  NO_SHOW_CUSTOMER = 'NO_SHOW_CUSTOMER',
+  NO_SHOW_TALENT = 'NO_SHOW_TALENT',
+  REFUND_PENDING = 'REFUND_PENDING',
+  REFUNDED = 'REFUNDED',
+  SETTLEMENT_PENDING = 'SETTLEMENT_PENDING',
+  SETTLED = 'SETTLED',
+  DISPUTED = 'DISPUTED',
+}
+
+export enum PaymentStatus {
+  INITIATED = 'INITIATED',
+  AUTHORIZED = 'AUTHORIZED',
+  CAPTURED = 'CAPTURED',
+  CANCELLED = 'CANCELLED',
+  REFUNDED = 'REFUNDED',
+  FAILED = 'FAILED',
+}
+
+export enum ConsentType {
+  TERMS_OF_SERVICE = 'TERMS_OF_SERVICE',
+  PRIVACY_POLICY = 'PRIVACY_POLICY',
+  CAMERA_AUDIO_PROCESSING = 'CAMERA_AUDIO_PROCESSING',
+  MARKETING_COMMUNICATION = 'MARKETING_COMMUNICATION',
+  VIDEO_RECORDING_OPTIONAL = 'VIDEO_RECORDING_OPTIONAL',
+}
+
+export type CurrentUser = {
+  id: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  roles: UserRole[];
+  talentProfile?: {
+    id: string;
+    slug: string;
+    publicName: string;
+    status: TalentStatus;
+  } | null;
+};

@@ -1,0 +1,24 @@
+{
+  "name": "mobile",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "expo start",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
+    "lint": "echo 'Expo lint yapılandırması Faz 1 için opsiyonel'"
+  },
+  "dependencies": {
+    "@react-native-async-storage/async-storage": "^2.1.2",
+    "expo": "~53.0.12",
+    "expo-router": "~5.1.0",
+    "expo-secure-store": "~14.2.3",
+    "react": "19.0.0",
+    "react-native": "0.79.4",
+    "zustand": "^5.0.5"
+  },
+  "devDependencies": {
+    "@types/react": "^19.1.8",
+    "typescript": "^5.8.3"
+  }
+}

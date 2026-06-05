@@ -1,19 +1,47 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'expo-router';
-import { ScrollView, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, ScrollView, Text, TextInput, View } from 'react-native';
 import { apiFetch } from '../../src/lib/api';
 
+type TalentListItem = {
+  id: string;
+  slug: string;
+  displayName: string;
+  title: string;
+  category: string | null;
+  priceCents: number;
+  currency: string;
+};
+
 export default function HomeScreen() {
-  const [items, setItems] = useState<any[]>([]);
+  const [items, setItems] = useState<TalentListItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  async function loadTalents() {
+    try {
+      setLoading(true);
+      setError('');
+      const data = await apiFetch<{ items: TalentListItem[] }>('/talents');
+      setItems(data.items ?? []);
+    } catch (fetchError) {
+      setError(fetchError instanceof Error ? fetchError.message : 'Uzman listesi alınamadı.');
+    } finally {
+      setLoading(false);
+    }
+  }
 
   useEffect(() => {
-    apiFetch('/talents').then((data) => setItems(data.items ?? []));
+    loadTalents().catch(() => null);
   }, []);
 
   return (
     <ScrollView contentContainerStyle={{ padding: 24, gap: 16 }}>
       <Text style={{ fontSize: 28, fontWeight: '700' }}>Kiminle görüşmek istersin?</Text>
       <TextInput placeholder="Uzman ara" style={{ borderWidth: 1, padding: 12 }} />
+      {loading ? <ActivityIndicator size="large" /> : null}
+      {error ? <Text style={{ color: '#b91c1c' }}>{error}</Text> : null}
+      {!loading && !items.length && !error ? <Text>Şu anda listelenecek uzman bulunamadı.</Text> : null}
       {items.map((item) => (
         <Link key={item.id} href={`/talent/${item.slug}`}>
           <View style={{ borderWidth: 1, borderRadius: 12, padding: 16 }}>

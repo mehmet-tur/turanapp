@@ -2,14 +2,16 @@
   "name": "mobile",
   "version": "0.0.1",
   "private": true,
+  "main": "expo-router/entry",
   "scripts": {
     "dev": "expo start",
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "build": "tsc --noEmit",
+    "build": "pnpm typecheck",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint app src lib --ext .ts,.tsx",
-    "test": "echo \"No mobile tests yet\"",
+    "test": "tsx --test src/lib/*.spec.ts",
     "format": "prettier --write \"app/**/*.tsx\" \"src/**/*.ts\" \"src/**/*.tsx\""
   },
   "dependencies": {
@@ -22,7 +24,9 @@
     "zustand": "^5.0.5"
   },
   "devDependencies": {
+    "@types/node": "^24.0.1",
     "@types/react": "^19.1.8",
+    "tsx": "^4.20.3",
     "typescript": "^5.8.3"
   }
 }

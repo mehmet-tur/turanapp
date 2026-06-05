@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Button, Switch, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Button, Switch, Text, TextInput, View } from 'react-native';
 import { useAuthStore } from '../../src/store/auth';
 
 export default function RegisterScreen() {
@@ -15,6 +15,8 @@ export default function RegisterScreen() {
     password: 'StrongPassword123!',
     phone: '+905551112233',
   });
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   return (
     <View style={{ flex: 1, padding: 24, gap: 12 }}>
@@ -30,17 +32,28 @@ export default function RegisterScreen() {
         <Text>Gizlilik politikasını kabul ediyorum</Text>
         <Switch value={privacy} onValueChange={setPrivacy} />
       </View>
+      {error ? <Text style={{ color: '#b91c1c' }}>{error}</Text> : null}
+      {loading ? <ActivityIndicator size="small" /> : null}
       <Button
-        title="Kayıt ol"
+        title={loading ? 'Kayıt oluşturuluyor...' : 'Kayıt ol'}
+        disabled={loading}
         onPress={async () => {
-          await register({
-            ...form,
-            consents: [
-              { type: 'TERMS_OF_SERVICE', version: '2026-06-05', accepted: terms },
-              { type: 'PRIVACY_POLICY', version: '2026-06-05', accepted: privacy },
-            ],
-          });
-          router.replace('/(tabs)/home');
+          try {
+            setLoading(true);
+            setError('');
+            await register({
+              ...form,
+              consents: [
+                { type: 'TERMS_OF_SERVICE', version: '2026-06-05', accepted: terms },
+                { type: 'PRIVACY_POLICY', version: '2026-06-05', accepted: privacy },
+              ],
+            });
+            router.replace('/(tabs)/home');
+          } catch (registerError) {
+            setError(registerError instanceof Error ? registerError.message : 'Kayıt oluşturulamadı.');
+          } finally {
+            setLoading(false);
+          }
         }}
       />
     </View>

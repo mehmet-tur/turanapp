@@ -73,11 +73,19 @@ DATABASE_URL="postgresql://localhost:5432/unluapp?schema=public"
 - `pnpm smoke:api`: Çalışan API üzerinde smoke test zinciri çalıştırır
 - `pnpm lint`: Tüm workspace lint komutlarını çalıştırır
 - `pnpm test`: Tüm workspace test komutlarını çalıştırır
+- `pnpm test:e2e:web`: Playwright ile web demo smoke akışını çalıştırır
+- `pnpm --filter mobile typecheck`: Mobile TypeScript doğrulamasını çalıştırır
+
+## Mobil Demo
+- Varsayılan mobile env değişkenleri: `EXPO_PUBLIC_API_URL` ve `EXPO_PUBLIC_WEB_URL`
+- Rezervasyon detay ekranındaki CTA: `Web Görüşme Odasını Aç`
+- Akış: giriş → uzman listesi → uzman detayı → slot seçimi → rezervasyon detayı → web görüşme odası
 
 ## Mobil localhost notu
-- iOS Simulator için `http://localhost:3001` kullanılabilir.
-- Android Emulator için `http://10.0.2.2:3001` kullanılmalıdır.
-- Fiziksel cihazda bilgisayarın LAN IP’si kullanılmalıdır.
+- iOS Simulator: `EXPO_PUBLIC_API_URL="http://localhost:3001/api"` ve `EXPO_PUBLIC_WEB_URL="http://localhost:3000"`
+- Android Emulator: `EXPO_PUBLIC_API_URL="http://10.0.2.2:3001/api"` ve `EXPO_PUBLIC_WEB_URL="http://10.0.2.2:3000"`
+- Fiziksel cihaz: her iki değişkende de bilgisayarın LAN IP’sini kullanın; örnek `http://192.168.1.50:3001/api`
+- API CORS izinleri için web origin’ini `http://localhost:3000` olarak koruyun
 
 ## Kalanlar
 - Gerçek iyzico marketplace entegrasyonu

@@ -22,7 +22,8 @@
     "db:seed": "pnpm --filter api prisma:seed",
     "db:studio": "pnpm --filter api prisma:studio",
     "db:reset": "pnpm --filter api prisma:reset",
-    "smoke:api": "pnpm --filter api smoke"
+    "smoke:api": "pnpm --filter api smoke",
+    "test:e2e:web": "pnpm --filter web e2e"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
@@ -32,6 +33,7 @@
     "eslint": "^9.39.1",
     "globals": "^16.3.0",
     "prettier": "^3.5.3",
+    "tsx": "^4.20.3",
     "turbo": "^2.5.4",
     "typescript": "^5.8.3"
   }

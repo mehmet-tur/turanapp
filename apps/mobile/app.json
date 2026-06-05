@@ -1,0 +1,11 @@
+{
+  "expo": {
+    "name": "Unluapp",
+    "slug": "unluapp",
+    "scheme": "unluapp",
+    "plugins": ["expo-router"],
+    "experiments": {
+      "typedRoutes": true
+    }
+  }
+}

@@ -14,5 +14,4 @@ coverage
 .DS_Store
 apps/api/generated
 apps/api/prisma/dev.db
-apps/api/prisma/migrations
 apps/mobile/.expo

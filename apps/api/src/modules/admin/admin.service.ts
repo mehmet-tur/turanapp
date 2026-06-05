@@ -27,9 +27,29 @@ export class AdminService {
     };
   }
 
+  async summary() {
+    const [usersCount, talentsCount, approvedTalentsCount, bookingsCount, payments] = await this.prisma.$transaction([
+      this.prisma.user.count(),
+      this.prisma.talentProfile.count(),
+      this.prisma.talentProfile.count({ where: { status: TalentStatus.APPROVED } }),
+      this.prisma.booking.count(),
+      this.prisma.paymentIntent.aggregate({
+        _sum: { amountMinor: true, platformFeeMinor: true },
+      }),
+    ]);
+    return {
+      usersCount,
+      talentsCount,
+      approvedTalentsCount,
+      bookingsCount,
+      grossRevenueCents: payments._sum.amountMinor ?? 0,
+      platformRevenueCents: payments._sum.platformFeeMinor ?? 0,
+    };
+  }
+
   async listPendingTalents() {
     return this.prisma.talentProfile.findMany({
-      where: { status: TalentStatus.PENDING_REVIEW },
+      where: {},
       orderBy: { createdAt: 'desc' },
     });
   }

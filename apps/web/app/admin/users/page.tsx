@@ -7,7 +7,7 @@ export default function AdminUsersPage() {
 
   useEffect(() => {
     const token = sessionStorage.getItem('admin_token');
-    fetch(`${process.env.NEXT_PUBLIC_WEB_API_URL ?? 'http://localhost:4000/api'}/admin/users`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api'}/admin/users`, {
       headers: { authorization: `Bearer ${token}` },
     })
       .then((response) => response.json())

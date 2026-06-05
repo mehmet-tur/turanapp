@@ -12,13 +12,13 @@ export default function AdminLoginPage() {
   async function submit(event: React.FormEvent) {
     event.preventDefault();
     setError('');
-    const response = await fetch(`${process.env.NEXT_PUBLIC_WEB_API_URL ?? 'http://localhost:4000/api'}/auth/login`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api'}/auth/login`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
     const data = await response.json();
-    if (!response.ok || !data.user?.roles?.includes('ADMIN')) {
+    if (!response.ok || data.user?.role !== 'ADMIN') {
       setError('Admin hesabı ile giriş yapın.');
       return;
     }

@@ -152,6 +152,7 @@ model TalentProfile {
   categories            TalentCategory[]
   sessionTypes          SessionType[]
   availabilityRules     AvailabilityRule[]
+  availabilityWindows   AvailabilityWindow[]
   availabilityBlocks    AvailabilityBlock[]
   bookings              Booking[]
   managers              ManagerTalent[] @relation("TalentManaged")
@@ -159,6 +160,22 @@ model TalentProfile {
   @@index([slug])
   @@index([status, isFeatured])
   @@index([segment, status])
+}
+
+model AvailabilityWindow {
+  id                  String   @id @default(cuid())
+  talentId            String
+  startsAt            DateTime
+  endsAt              DateTime
+  slotDurationMinutes Int      @default(15)
+  bufferMinutes       Int      @default(0)
+  isActive            Boolean  @default(true)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  talent              TalentProfile @relation(fields: [talentId], references: [id], onDelete: Cascade)
+
+  @@index([talentId, startsAt])
+  @@index([talentId, isActive])
 }
 
 model TalentCategory {
@@ -246,6 +263,7 @@ model Booking {
   talentPayoutMinor  Int
   paymentId          String?
   videoRoomId        String?
+  videoJoinToken     String?
   cancelledAt        DateTime?
   cancellationReason String?
   completedAt        DateTime?
@@ -260,7 +278,7 @@ model Booking {
   @@index([customerId, startsAt])
   @@index([talentId, startsAt])
   @@index([status])
-  @@unique([talentId, startsAt, endsAt])
+  @@unique([talentId, startsAt])
 }
 
 model PaymentIntent {

@@ -1,5 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import {
+  CreateVideoSessionInput,
+  CreateVideoSessionResult,
   CreateVideoRoomInput,
   CreateVideoRoomResult,
   CreateVideoTokenInput,
@@ -9,6 +11,15 @@ import {
 
 @Injectable()
 export class MockVideoProvider implements VideoProviderPort {
+  async createSession(input: CreateVideoSessionInput): Promise<CreateVideoSessionResult> {
+    return {
+      roomId: `mock-room-${input.bookingId}`,
+      userJoinToken: `mock-user-token-${input.bookingId}`,
+      talentJoinToken: `mock-talent-token-${input.bookingId}`,
+      provider: 'MOCK',
+    };
+  }
+
   async createRoom(input: CreateVideoRoomInput): Promise<CreateVideoRoomResult> {
     return {
       provider: 'MOCK',
@@ -30,6 +41,15 @@ export class MockVideoProvider implements VideoProviderPort {
 
 @Injectable()
 export class AgoraVideoProvider implements VideoProviderPort {
+  async createSession(input: CreateVideoSessionInput): Promise<CreateVideoSessionResult> {
+    return {
+      roomId: `agora-room-${input.bookingId}`,
+      userJoinToken: '',
+      talentJoinToken: '',
+      provider: 'AGORA',
+    };
+  }
+
   async createRoom(input: CreateVideoRoomInput): Promise<CreateVideoRoomResult> {
     return { provider: 'AGORA', channelName: `booking_${input.bookingId}` };
   }

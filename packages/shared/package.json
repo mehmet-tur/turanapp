@@ -5,6 +5,12 @@
   "type": "module",
   "main": "src/index.ts",
   "types": "src/index.ts",
+  "scripts": {
+    "build": "echo 'shared build not required'",
+    "test": "echo 'No shared tests yet'",
+    "lint": "echo 'No shared lint yet'",
+    "format": "prettier --write \"src/**/*.ts\""
+  },
   "dependencies": {
     "zod": "^4.1.5"
   }

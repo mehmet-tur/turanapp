@@ -18,9 +18,24 @@ export class AdminController {
     return this.adminService.dashboard();
   }
 
+  @Get('summary')
+  summary() {
+    return this.adminService.summary();
+  }
+
   @Get('talents')
   talents() {
     return this.adminService.listPendingTalents();
+  }
+
+  @Post('talents/:id/approve')
+  approve(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.adminService.reviewTalent(user.sub, id, { decision: 'APPROVE' });
+  }
+
+  @Post('talents/:id/reject')
+  reject(@CurrentUser() user: any, @Param('id') id: string, @Body() dto: { reason?: string }) {
+    return this.adminService.reviewTalent(user.sub, id, { decision: 'REJECT', reason: dto.reason });
   }
 
   @Post('talents/:id/review')

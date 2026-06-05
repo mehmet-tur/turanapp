@@ -7,7 +7,7 @@ export default function AdminTalentsPage() {
 
   useEffect(() => {
     const token = sessionStorage.getItem('admin_token');
-    fetch(`${process.env.NEXT_PUBLIC_WEB_API_URL ?? 'http://localhost:4000/api'}/admin/talents`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api'}/admin/talents`, {
       headers: { authorization: `Bearer ${token}` },
     })
       .then((response) => response.json())
@@ -16,10 +16,10 @@ export default function AdminTalentsPage() {
 
   async function review(id: string, decision: 'APPROVE' | 'REJECT') {
     const token = sessionStorage.getItem('admin_token');
-    await fetch(`${process.env.NEXT_PUBLIC_WEB_API_URL ?? 'http://localhost:4000/api'}/admin/talents/${id}/review`, {
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api'}/admin/talents/${id}/${decision === 'APPROVE' ? 'approve' : 'reject'}`, {
       method: 'POST',
       headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` },
-      body: JSON.stringify(decision === 'APPROVE' ? { decision } : { decision, reason: 'Profil bilgileri yetersiz.' }),
+      body: JSON.stringify(decision === 'APPROVE' ? {} : { reason: 'Profil bilgileri yetersiz.' }),
     });
     setItems((current) => current.filter((item) => item.id !== id));
   }

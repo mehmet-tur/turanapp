@@ -1,3 +1,18 @@
+export interface CreateVideoSessionInput {
+  bookingId: string;
+  talentId: string;
+  userId: string;
+  startsAt: Date;
+  endsAt: Date;
+}
+
+export interface CreateVideoSessionResult {
+  roomId: string;
+  userJoinToken: string;
+  talentJoinToken: string;
+  provider: 'MOCK' | 'AGORA';
+}
+
 export interface CreateVideoRoomInput {
   bookingId: string;
   startsAt: Date;
@@ -28,6 +43,7 @@ export interface CreateVideoTokenResult {
 }
 
 export interface VideoProviderPort {
+  createSession(input: CreateVideoSessionInput): Promise<CreateVideoSessionResult>;
   createRoom(input: CreateVideoRoomInput): Promise<CreateVideoRoomResult>;
   createToken(input: CreateVideoTokenInput): Promise<CreateVideoTokenResult>;
 }

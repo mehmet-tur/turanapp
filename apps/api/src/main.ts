@@ -16,7 +16,7 @@ async function bootstrap() {
     next();
   });
   app.enableCors({
-    origin: process.env.CORS_ORIGINS?.split(',') ?? ['http://localhost:3000', 'http://localhost:8081'],
+    origin: process.env.CORS_ORIGIN?.split(',') ?? process.env.CORS_ORIGINS?.split(',') ?? ['http://localhost:3000', 'http://localhost:8081'],
     credentials: true,
   });
   app.useGlobalPipes(
@@ -24,6 +24,7 @@ async function bootstrap() {
       whitelist: true,
       transform: true,
       forbidUnknownValues: true,
+      forbidNonWhitelisted: true,
     }),
   );
   app.useGlobalFilters(new HttpExceptionFilter());
@@ -37,7 +38,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, swaggerConfig);
   SwaggerModule.setup('docs', app, document);
 
-  await app.listen(Number(process.env.API_PORT ?? 4000));
+  await app.listen(Number(process.env.API_PORT ?? 3001));
 }
 
 bootstrap();

@@ -1,33 +1,21 @@
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: celebrity_call_postgres
+    container_name: unluapp-postgres
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: celebrity_call
+      POSTGRES_USER: unluapp
+      POSTGRES_PASSWORD: unluapp_password
+      POSTGRES_DB: unluapp_dev
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      test: ["CMD-SHELL", "pg_isready -U unluapp -d unluapp_dev"]
       interval: 5s
       timeout: 5s
-      retries: 5
-
-  redis:
-    image: redis:7-alpine
-    container_name: celebrity_call_redis
-    ports:
-      - "6379:6379"
-
-  mailpit:
-    image: axllent/mailpit:latest
-    container_name: celebrity_call_mailpit
-    ports:
-      - "1025:1025"
-      - "8025:8025"
+      retries: 10
 
 volumes:
   postgres_data:

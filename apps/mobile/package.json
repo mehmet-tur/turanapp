@@ -3,10 +3,14 @@
   "version": "0.0.1",
   "private": true,
   "scripts": {
+    "dev": "expo start",
     "start": "expo start",
     "android": "expo run:android",
     "ios": "expo run:ios",
-    "lint": "echo 'Expo lint yapılandırması Faz 1 için opsiyonel'"
+    "build": "echo 'No mobile build yet'",
+    "lint": "echo 'Expo lint yapılandırması Faz 2 için ertelendi'",
+    "test": "echo \"No mobile tests yet\"",
+    "format": "prettier --write \"app/**/*.tsx\" \"src/**/*.ts\" \"src/**/*.tsx\""
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^2.1.2",

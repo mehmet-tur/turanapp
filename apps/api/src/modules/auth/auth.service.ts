@@ -1,6 +1,6 @@
 import { BadRequestException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { ConsentType, Prisma, UserRole } from '@prisma/client';
+import { ConsentType, UserRole } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { AuditService } from '../common/audit.service';
 import { PasswordService } from '../common/password.service';
@@ -18,7 +18,8 @@ export class AuthService {
 
   async register(dto: RegisterDto, meta: { ipAddress?: string; userAgent?: string }) {
     const email = dto.email.trim().toLowerCase();
-    this.ensureMandatoryConsents(dto.consents);
+    const consents = this.normalizeRegisterConsents(dto);
+    const { firstName, lastName, fullName } = this.parseName(dto);
     const existing = await this.prisma.user.findUnique({ where: { email } });
     if (existing) throw new BadRequestException({ code: 'CONFLICT', message: 'Bu e-posta zaten kayıtlı.' });
 
@@ -27,12 +28,13 @@ export class AuthService {
       data: {
         email,
         passwordHash,
-        firstName: dto.firstName.trim(),
-        lastName: dto.lastName.trim(),
+        firstName,
+        lastName,
+        displayName: fullName,
         phone: dto.phone,
         roles: [UserRole.CUSTOMER],
         consentLogs: {
-          create: dto.consents.map((consent) => ({
+          create: consents.map((consent) => ({
             type: consent.type as ConsentType,
             version: consent.version,
             accepted: consent.accepted,
@@ -92,7 +94,16 @@ export class AuthService {
     return { success: true };
   }
 
-  private async issueTokens(user: { id: string; email: string; firstName: string; lastName: string; roles: UserRole[]; talentProfile?: any }) {
+  async me(userId: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      include: { talentProfile: true },
+    });
+    if (!user) throw new UnauthorizedException();
+    return this.toAuthUser(user);
+  }
+
+  private async issueTokens(user: { id: string; email: string; firstName: string; lastName: string; roles: UserRole[]; talentProfile?: any; displayName?: string | null }) {
     const basePayload = {
       sub: user.id,
       email: user.email,
@@ -128,16 +139,27 @@ export class AuthService {
       },
     });
     return {
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        roles: user.roles,
-      },
+      user: this.toAuthUser(user),
       accessToken,
       refreshToken,
     };
+  }
+
+  private normalizeRegisterConsents(dto: RegisterDto) {
+    if (dto.consents?.length) {
+      this.ensureMandatoryConsents(dto.consents);
+      return dto.consents;
+    }
+    const consents = [
+      { type: ConsentType.TERMS_OF_SERVICE, version: '2026-06-05', accepted: !!dto.acceptedTerms },
+      { type: ConsentType.PRIVACY_POLICY, version: '2026-06-05', accepted: !!dto.acceptedTerms },
+      { type: ConsentType.CAMERA_AUDIO_PROCESSING, version: '2026-06-05', accepted: !!dto.acceptedKvkk },
+    ];
+    this.ensureMandatoryConsents(consents);
+    if (!dto.acceptedKvkk) {
+      throw new BadRequestException({ code: 'VALIDATION_ERROR', message: 'KVKK onayı zorunludur.' });
+    }
+    return consents;
   }
 
   private ensureMandatoryConsents(consents: { type: string; accepted: boolean }[]) {
@@ -156,5 +178,40 @@ export class AuthService {
     } catch {
       throw new UnauthorizedException();
     }
+  }
+
+  private parseName(dto: RegisterDto) {
+    if (dto.fullName?.trim()) {
+      const parts = dto.fullName.trim().split(/\s+/);
+      return {
+        firstName: parts[0],
+        lastName: parts.slice(1).join(' ') || '-',
+        fullName: dto.fullName.trim(),
+      };
+    }
+    const firstName = dto.firstName?.trim();
+    const lastName = dto.lastName?.trim();
+    if (!firstName || !lastName) {
+      throw new BadRequestException({ code: 'VALIDATION_ERROR', message: 'Ad soyad zorunludur.' });
+    }
+    return { firstName, lastName, fullName: `${firstName} ${lastName}` };
+  }
+
+  private toAuthUser(user: { id: string; email: string; firstName: string; lastName: string; roles: UserRole[]; displayName?: string | null; talentProfile?: any }) {
+    return {
+      id: user.id,
+      email: user.email,
+      fullName: user.displayName ?? `${user.firstName} ${user.lastName}`.trim(),
+      role: user.roles.includes(UserRole.ADMIN) ? 'ADMIN' : user.roles.includes(UserRole.TALENT) ? 'TALENT' : 'USER',
+      roles: user.roles.map((role) => (role === UserRole.CUSTOMER ? 'USER' : role)),
+      talentProfile: user.talentProfile
+        ? {
+            id: user.talentProfile.id,
+            slug: user.talentProfile.slug,
+            publicName: user.talentProfile.publicName,
+            status: user.talentProfile.status,
+          }
+        : null,
+    };
   }
 }

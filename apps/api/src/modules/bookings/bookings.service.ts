@@ -21,12 +21,22 @@ export class BookingsService {
 
   async quote(userId: string, dto: BookingQuoteDto) {
     const data = await this.validateBookingInput(userId, dto);
-    return this.toQuote(data);
+    const quote = this.toQuote(data);
+    return {
+      talentSlug: data.talent.slug,
+      startsAt: quote.startsAt,
+      endsAt: quote.endsAt,
+      durationMinutes: data.sessionType.durationMinutes,
+      priceCents: quote.priceMinor,
+      currency: quote.currency,
+      platformFeeCents: quote.platformFeeMinor,
+      talentPayoutCents: quote.talentPayoutMinor,
+      commissionBps: quote.commissionBps,
+    };
   }
 
   async create(user: any, dto: BookingCreateDto, meta: { ipAddress?: string; userAgent?: string }) {
-    const consent = dto.consents.find((item) => item.type === ConsentType.CAMERA_AUDIO_PROCESSING);
-    if (!consent?.accepted) {
+    if (!dto.acceptedCameraAudioConsent) {
       throw new BadRequestException({ code: 'VALIDATION_ERROR', message: 'Kamera/ses işleme onayı zorunludur.' });
     }
     const data = await this.validateBookingInput(user.sub, dto);
@@ -51,24 +61,23 @@ export class BookingsService {
           status: BookingStatus.PAYMENT_PENDING,
           startsAt: data.startsAt,
           endsAt: data.endsAt,
-          timezone: dto.timezone,
-          customerNote: dto.customerNote,
+          customerNote: dto.notes,
           priceMinor: quote.priceMinor,
           currency: quote.currency,
           platformFeeMinor: quote.platformFeeMinor,
           talentPayoutMinor: quote.talentPayoutMinor,
         },
       });
-      await tx.consentLog.createMany({
-        data: dto.consents.map((item) => ({
+      await tx.consentLog.create({
+        data: {
           userId: user.sub,
-          type: item.type as ConsentType,
-          version: item.version,
-          accepted: item.accepted,
+          type: ConsentType.CAMERA_AUDIO_PROCESSING,
+          version: '2026-06-05',
+          accepted: true,
           ipAddress: meta.ipAddress,
           userAgent: meta.userAgent,
           metadata: { bookingId: booking.id },
-        })),
+        },
       });
       const paymentIntent = await tx.paymentIntent.create({
         data: {
@@ -88,27 +97,34 @@ export class BookingsService {
         platformFeeMinor: quote.platformFeeMinor,
         talentPayoutMinor: quote.talentPayoutMinor,
       });
+      await this.paymentProvider.capture({
+        paymentIntentId: paymentIntent.id,
+        providerReference: auth.providerReference,
+        amountMinor: quote.priceMinor,
+      });
       await tx.paymentIntent.update({
         where: { id: paymentIntent.id },
         data: {
-          status: PaymentStatus.AUTHORIZED,
+          status: PaymentStatus.CAPTURED,
           providerReference: auth.providerReference,
           rawProviderResponse: auth.rawProviderResponse as any,
           authorizedAt: new Date(),
+          capturedAt: new Date(),
         },
       });
-      const room = await this.videoProvider.createRoom({
+      const room = await this.videoProvider.createSession({
         bookingId: booking.id,
+        talentId: data.talent.id,
+        userId: user.sub,
         startsAt: data.startsAt,
         endsAt: data.endsAt,
-        recordingEnabled: false,
       });
       const videoRoom = await tx.videoRoom.create({
         data: {
           bookingId: booking.id,
-          provider: room.provider,
-          channelName: room.channelName,
-          providerRoomId: room.providerRoomId,
+          provider: room.provider as any,
+          channelName: room.roomId,
+          providerRoomId: room.roomId,
           startsAt: data.startsAt,
           endsAt: data.endsAt,
           recordingEnabled: false,
@@ -118,6 +134,7 @@ export class BookingsService {
         where: { id: booking.id },
         data: {
           status: BookingStatus.CONFIRMED,
+          videoJoinToken: room.userJoinToken,
         },
       });
       await this.auditService.log({ actorUserId: user.sub, action: 'BOOKING_CREATED', entityType: 'Booking', entityId: booking.id });
@@ -127,12 +144,12 @@ export class BookingsService {
         status: updated.status,
         startsAt: updated.startsAt,
         endsAt: updated.endsAt,
-        priceMinor: updated.priceMinor,
+        priceCents: updated.priceMinor,
         currency: updated.currency,
-        platformFeeMinor: updated.platformFeeMinor,
-        talentPayoutMinor: updated.talentPayoutMinor,
-        payment: { status: PaymentStatus.AUTHORIZED, provider: PaymentProvider.MOCK },
-        videoRoom: { provider: videoRoom.provider, channelName: videoRoom.channelName },
+        platformFeeCents: updated.platformFeeMinor,
+        talentPayoutCents: updated.talentPayoutMinor,
+        videoRoomId: videoRoom.providerRoomId,
+        videoJoinToken: room.userJoinToken,
       };
     });
   }
@@ -152,7 +169,7 @@ export class BookingsService {
         status: item.status,
         startsAt: item.startsAt,
         endsAt: item.endsAt,
-        talent: { publicName: item.talent.publicName, slug: item.talent.slug },
+        talent: { displayName: item.talent.publicName, slug: item.talent.slug },
         sessionType: { title: item.sessionType.title },
       })),
     };
@@ -172,7 +189,20 @@ export class BookingsService {
     if (!this.permissions.canAccessBooking({ id: user.sub, roles: user.roles }, booking)) {
       throw new ForbiddenException();
     }
-    return booking;
+    return {
+      id: booking.id,
+      status: booking.status,
+      startsAt: booking.startsAt,
+      endsAt: booking.endsAt,
+      notes: booking.customerNote,
+      priceCents: booking.priceMinor,
+      currency: booking.currency,
+      platformFeeCents: booking.platformFeeMinor,
+      talentPayoutCents: booking.talentPayoutMinor,
+      videoRoomId: booking.videoRoom?.providerRoomId ?? booking.videoRoom?.channelName ?? null,
+      videoJoinToken: booking.videoJoinToken,
+      talent: { slug: booking.talent.slug, displayName: booking.talent.publicName },
+    };
   }
 
   async cancel(user: any, bookingId: string, dto: CancelBookingDto) {
@@ -213,15 +243,29 @@ export class BookingsService {
     return updated;
   }
 
+  async complete(user: any, bookingId: string) {
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { talent: { include: { managers: true } } },
+    });
+    if (!booking) throw new NotFoundException();
+    if (!this.permissions.canAccessBooking({ id: user.sub, roles: user.roles }, booking)) {
+      throw new ForbiddenException();
+    }
+    return this.prisma.booking.update({
+      where: { id: bookingId },
+      data: { status: BookingStatus.COMPLETED, completedAt: new Date() },
+    });
+  }
+
   private async validateBookingInput(userId: string, dto: BookingQuoteDto) {
-    const talent = await this.prisma.talentProfile.findUnique({
-      where: { id: dto.talentId },
+    const talent = await this.prisma.talentProfile.findFirst({
+      where: { slug: dto.talentSlug },
       include: {
         user: true,
-        availabilityRules: { where: { isActive: true } },
-        availabilityBlocks: true,
+        availabilityWindows: { where: { isActive: true } },
         bookings: { where: { status: { in: [...BLOCKING_BOOKING_STATUSES] as BookingStatus[] } } },
-        sessionTypes: { where: { id: dto.sessionTypeId, isActive: true } },
+        sessionTypes: { where: { isActive: true, durationMinutes: dto.durationMinutes }, orderBy: { priceMinor: 'asc' }, take: 1 },
       },
     });
     if (!talent) throw new NotFoundException();
@@ -237,7 +281,7 @@ export class BookingsService {
     if (startsAt < noticeLimit) {
       throw new BadRequestException({ code: 'VALIDATION_ERROR', message: 'Minimum bildirim süresi karşılanmıyor.' });
     }
-    const endsAt = addMinutes(startsAt, sessionType.durationMinutes);
+    const endsAt = addMinutes(startsAt, dto.durationMinutes);
     const slotWindow = await this.isSlotAvailable(talent, startsAt, endsAt);
     if (!slotWindow) throw new BadRequestException({ code: 'BOOKING_SLOT_UNAVAILABLE', message: 'Seçilen saat müsait değil.' });
     return { talent, sessionType, startsAt, endsAt };
@@ -261,22 +305,9 @@ export class BookingsService {
   }
 
   private async isSlotAvailable(talent: any, startsAt: Date, endsAt: Date) {
-    const weekday = startsAt.getUTCDay() === 0 ? 7 : startsAt.getUTCDay();
-    const startMinutes = startsAt.getUTCHours() * 60 + startsAt.getUTCMinutes();
-    const endMinutes = endsAt.getUTCHours() * 60 + endsAt.getUTCMinutes();
-    const hasRule = talent.availabilityRules.some((rule: any) => {
-      const ruleStart = this.toMinutes(rule.startTime);
-      const ruleEnd = this.toMinutes(rule.endTime);
-      return rule.weekday === weekday && startMinutes >= ruleStart && endMinutes <= ruleEnd;
-    });
-    if (!hasRule) return false;
+    const hasWindow = talent.availabilityWindows.some((window: any) => startsAt >= window.startsAt && endsAt <= window.endsAt);
+    if (!hasWindow) return false;
     if (talent.bookings.some((booking: any) => overlaps(startsAt, endsAt, booking.startsAt, booking.endsAt))) return false;
-    if (talent.availabilityBlocks.some((block: any) => overlaps(startsAt, endsAt, block.startsAt, block.endsAt))) return false;
     return true;
-  }
-
-  private toMinutes(time: string) {
-    const [hours, minutes] = time.split(':').map(Number);
-    return hours * 60 + minutes;
   }
 }

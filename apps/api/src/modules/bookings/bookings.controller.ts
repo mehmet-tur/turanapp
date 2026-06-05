@@ -22,7 +22,7 @@ export class BookingsController {
     return this.bookingsService.create(user, dto, { ipAddress: req.ip, userAgent: req.headers['user-agent'] });
   }
 
-  @Get('me')
+  @Get('my')
   listMyBookings(@CurrentUser() user: any, @Query('status') status?: any) {
     return this.bookingsService.listMyBookings(user, status);
   }
@@ -35,5 +35,10 @@ export class BookingsController {
   @Post(':id/cancel')
   cancel(@CurrentUser() user: any, @Param('id') id: string, @Body() dto: CancelBookingDto) {
     return this.bookingsService.cancel(user, id, dto);
+  }
+
+  @Post(':id/complete')
+  complete(@CurrentUser() user: any, @Param('id') id: string) {
+    return this.bookingsService.complete(user, id);
   }
 }

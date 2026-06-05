@@ -1,8 +1,10 @@
+import { useRouter } from 'expo-router';
 import { useState } from 'react';
 import { Button, Switch, Text, TextInput, View } from 'react-native';
 import { useAuthStore } from '../../src/store/auth';
 
 export default function RegisterScreen() {
+  const router = useRouter();
   const register = useAuthStore((state) => state.register);
   const [terms, setTerms] = useState(true);
   const [privacy, setPrivacy] = useState(true);
@@ -30,15 +32,16 @@ export default function RegisterScreen() {
       </View>
       <Button
         title="Kayıt ol"
-        onPress={() =>
-          register({
+        onPress={async () => {
+          await register({
             ...form,
             consents: [
               { type: 'TERMS_OF_SERVICE', version: '2026-06-05', accepted: terms },
               { type: 'PRIVACY_POLICY', version: '2026-06-05', accepted: privacy },
             ],
-          })
-        }
+          });
+          router.replace('/(tabs)/home');
+        }}
       />
     </View>
   );

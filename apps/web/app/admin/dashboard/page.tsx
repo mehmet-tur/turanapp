@@ -7,7 +7,7 @@ export default function AdminDashboardPage() {
 
   useEffect(() => {
     const token = sessionStorage.getItem('admin_token');
-    fetch(`${process.env.NEXT_PUBLIC_WEB_API_URL ?? 'http://localhost:4000/api'}/admin/dashboard`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api'}/admin/summary`, {
       headers: { authorization: `Bearer ${token}` },
     })
       .then((response) => response.json())
@@ -16,11 +16,10 @@ export default function AdminDashboardPage() {
 
   const cards = data
     ? [
-        ['Toplam kullanıcı', data.totalUsers],
-        ['Onay bekleyen uzman', data.pendingTalents],
-        ['Onaylı uzman', data.approvedTalents],
-        ['Yaklaşan rezervasyon', data.upcomingBookings],
-        ['Mock ödeme toplamı', `${(data.mockPaymentTotalMinor / 100).toLocaleString('tr-TR')} TRY`],
+        ['Toplam kullanıcı', data.usersCount],
+        ['Onaylı uzman', data.approvedTalentsCount],
+        ['Toplam rezervasyon', data.bookingsCount],
+        ['Platform geliri', `${(data.platformRevenueCents / 100).toLocaleString('tr-TR')} TRY`],
       ]
     : [];
 

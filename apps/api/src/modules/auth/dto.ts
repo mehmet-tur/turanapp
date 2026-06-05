@@ -34,21 +34,36 @@ export class RegisterDto {
   @Matches(/[^A-Za-z0-9]/)
   password!: string;
 
+  @IsOptional()
   @IsString()
-  firstName!: string;
+  fullName?: string;
 
+  @IsOptional()
   @IsString()
-  lastName!: string;
+  firstName?: string;
+
+  @IsOptional()
+  @IsString()
+  lastName?: string;
 
   @IsOptional()
   @Matches(/^\+[1-9]\d{7,14}$/)
   phone?: string;
 
+  @IsOptional()
+  @IsBoolean()
+  acceptedTerms?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  acceptedKvkk?: boolean;
+
+  @IsOptional()
   @IsArray()
-  @ArrayMinSize(2)
+  @ArrayMinSize(1)
   @ValidateNested({ each: true })
   @Type(() => ConsentInputDto)
-  consents!: ConsentInputDto[];
+  consents?: ConsentInputDto[];
 }
 
 export class LoginDto {

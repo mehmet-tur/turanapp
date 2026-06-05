@@ -5,42 +5,57 @@
 - pnpm
 - Docker
 
-## Kurulum
+## Hızlı başlangıç
 ```bash
-cp .env.example .env
 pnpm install
-pnpm db:up
+cp .env.example .env
+docker compose up -d postgres
+pnpm db:generate
 pnpm db:migrate
 pnpm db:seed
-pnpm api:dev
-pnpm web:dev
-pnpm mobile:dev
+pnpm dev:api
+pnpm dev:web
+pnpm dev:mobile
 ```
 
-## URL'ler
-- API: http://localhost:4000/api
-- Swagger: http://localhost:4000/docs
-- Web: http://localhost:3000
-- Mailpit: http://localhost:8025
+## Lokalde sıfırdan çalıştırma
+1. `.env.example` dosyasını `.env` olarak kopyalayın.
+2. PostgreSQL servisini `docker compose up -d postgres` ile başlatın.
+3. Prisma client ve migration çalıştırın.
+4. Seed ile demo veri yükleyin.
+5. API, web ve mobile uygulamalarını ayrı terminallerde başlatın.
 
-## Seed Hesapları
-- `admin@example.com` / `Admin123!ChangeMe`
-- `customer@example.com` / `Customer123!ChangeMe`
-- `talent@example.com` / `Talent123!ChangeMe`
+## Demo hesaplar
+- Admin: `admin@unluapp.local` / `Password123!`
+- Kullanıcı: `demo@unluapp.local` / `Password123!`
+- Talent: `ayse-yildiz@unluapp.local` / `Password123!`
 
-## Proje Yapısı
-- `apps/api`: NestJS API, Prisma, testler
-- `apps/web`: Next.js landing ve admin paneli
-- `apps/mobile`: Expo mobil iskeleti
-- `packages/shared`: Ortak tipler, sabitler ve şemalar
-- `docs`: mimari, API sözleşmesi ve ertelenen işler
+## Servis URL’leri
+- API health: `http://localhost:3001/api/health`
+- Swagger: `http://localhost:3001/docs`
+- Web: `http://localhost:3000`
+- Admin: `http://localhost:3000/admin/login`
 
-## Faz 1 Kapsamı
-- Kimlik doğrulama ve rol sistemi
-- Uzman başvurusu, onayı ve listeleme
-- Müsaitlik kuralları ve slot üretimi
-- Mock ödeme ve mock video akışları
-- Admin paneli ve mobil rezervasyon akışı
+## MVP kapsamı
+- Kullanıcı auth
+- Talent listeleme ve detay
+- Availability window ve slot üretimi
+- Booking
+- Mock payment
+- Mock video session
+- Admin dashboard
+- Admin talent approval
+- KVKK / camera-audio consent log
 
-## Faz 2'ye Ertelenenler
-Bkz. `docs/deferred.md`
+## Mobil localhost notu
+- iOS Simulator için `http://localhost:3001` kullanılabilir.
+- Android Emulator için gerekirse `http://10.0.2.2:3001` kullanılmalıdır.
+- Fiziksel cihazda bilgisayarın LAN IP’si kullanılmalıdır.
+
+## Teknik notlar
+- Fiyat hesabı her zaman sunucuda yapılır.
+- Gerçek ödeme ve video sağlayıcı entegrasyonları bu fazda mock katman üzerinden çalışır.
+- Booking çakışması service katmanında engellenir; slot tekrar kullanımı için partial unique index ihtiyacı sonraki fazda ele alınır.
+
+## Ertelenen işler
+Bkz. `/Users/investintech/Developer/unluapp/docs/deferred.md`

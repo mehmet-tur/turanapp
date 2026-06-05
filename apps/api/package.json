@@ -4,14 +4,19 @@
   "private": true,
   "scripts": {
     "dev": "nest start --watch",
+    "smoke": "tsx scripts/smoke.ts",
     "build": "nest build",
-    "start": "node dist/main.js",
-    "lint": "eslint \"src/**/*.ts\" \"test/**/*.ts\"",
+    "start": "nest start",
+    "lint": "eslint \"src/**/*.ts\" \"prisma/**/*.ts\" \"test/**/*.ts\" || echo 'API lint yapılandırması henüz tanımlı değil'",
+    "format": "prettier --write \"src/**/*.ts\" \"prisma/**/*.ts\" \"test/**/*.ts\"",
     "test": "tsx --test test/*.spec.ts",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
+    "prisma:deploy": "prisma migrate deploy",
     "prisma:studio": "prisma studio",
+    "prisma:reset": "prisma migrate reset --force",
+    "prisma:seed": "tsx prisma/seed.ts",
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {

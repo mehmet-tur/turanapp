@@ -18,9 +18,21 @@ export class TalentsController {
   }
 
   @Public()
+  @Get('featured')
+  featured() {
+    return this.talentsService.featured();
+  }
+
+  @Public()
   @Get()
   list(@Query() query: Record<string, string>) {
     return this.talentsService.listPublic(query);
+  }
+
+  @Public()
+  @Get(':slug/slots')
+  slotsBySlug(@Param('slug') slug: string, @Query('from') from?: string, @Query('to') to?: string) {
+    return this.talentsService.getSlotsBySlug(slug, from, to);
   }
 
   @Public()
@@ -36,15 +48,4 @@ export class TalentsController {
     return this.talentsService.createAvailabilityRule(user, dto);
   }
 
-  @Public()
-  @Get(':talentId/slots')
-  getSlots(
-    @Param('talentId') talentId: string,
-    @Query('sessionTypeId') sessionTypeId: string,
-    @Query('from') from: string,
-    @Query('until') until: string,
-    @Query('timezone') timezone = 'Europe/Istanbul',
-  ) {
-    return this.talentsService.getSlots(talentId, sessionTypeId, from, until, timezone);
-  }
 }

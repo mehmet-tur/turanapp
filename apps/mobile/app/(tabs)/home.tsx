@@ -17,9 +17,10 @@ export default function HomeScreen() {
       {items.map((item) => (
         <Link key={item.id} href={`/talent/${item.slug}`}>
           <View style={{ borderWidth: 1, borderRadius: 12, padding: 16 }}>
-            <Text style={{ fontSize: 18, fontWeight: '600' }}>{item.publicName}</Text>
-            <Text>{item.headline}</Text>
-            <Text>Başlangıç: {(item.startingPriceMinor / 100).toLocaleString('tr-TR')} {item.currency}</Text>
+            <Text style={{ fontSize: 18, fontWeight: '600' }}>{item.displayName}</Text>
+            <Text>{item.title}</Text>
+            <Text>{item.category}</Text>
+            <Text>Başlangıç: {(item.priceCents / 100).toLocaleString('tr-TR')} {item.currency}</Text>
           </View>
         </Link>
       ))}

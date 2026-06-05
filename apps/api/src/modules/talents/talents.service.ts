@@ -3,7 +3,6 @@ import {
   ForbiddenException,
   Injectable,
   NotFoundException,
-  UseGuards,
 } from '@nestjs/common';
 import { BookingStatus, Prisma, TalentStatus, UserRole } from '@prisma/client';
 import slugify from 'slugify';
@@ -80,15 +79,41 @@ export class TalentsService {
       items: items.map((item) => ({
         id: item.id,
         slug: item.slug,
-        publicName: item.publicName,
-        headline: item.headline,
+        displayName: item.publicName,
+        title: item.headline,
+        category: item.categories[0]?.category.name ?? null,
         segment: item.segment,
-        profileImageUrl: item.profileImageUrl,
-        startingPriceMinor: item.sessionTypes[0]?.priceMinor ?? 0,
+        avatarUrl: item.profileImageUrl,
+        isFeatured: item.isFeatured,
+        priceCents: item.sessionTypes[0]?.priceMinor ?? 0,
         currency: item.sessionTypes[0]?.currency ?? 'TRY',
         categories: item.categories.map(({ category }) => ({ name: category.name, slug: category.slug })),
       })),
       pagination: { page, pageSize, total },
+    };
+  }
+
+  async featured() {
+    const items = await this.prisma.talentProfile.findMany({
+      where: { status: TalentStatus.APPROVED, isFeatured: true },
+      include: {
+        categories: { include: { category: true } },
+        sessionTypes: { where: { isActive: true }, orderBy: { priceMinor: 'asc' }, take: 1 },
+      },
+      orderBy: [{ approvedAt: 'desc' }],
+    });
+    return {
+      items: items.map((item) => ({
+        id: item.id,
+        slug: item.slug,
+        displayName: item.publicName,
+        title: item.headline,
+        category: item.categories[0]?.category.name ?? null,
+        priceCents: item.sessionTypes[0]?.priceMinor ?? 0,
+        currency: item.sessionTypes[0]?.currency ?? 'TRY',
+        avatarUrl: item.profileImageUrl,
+        isFeatured: item.isFeatured,
+      })),
     };
   }
 
@@ -104,18 +129,21 @@ export class TalentsService {
     return {
       id: talent.id,
       slug: talent.slug,
-      publicName: talent.publicName,
-      headline: talent.headline,
+      displayName: talent.publicName,
+      title: talent.headline,
       bio: talent.bio,
+      category: talent.categories[0]?.category.name ?? null,
       segment: talent.segment,
-      profileImageUrl: talent.profileImageUrl,
-      coverImageUrl: talent.coverImageUrl,
+      avatarUrl: talent.profileImageUrl,
+      coverUrl: talent.coverImageUrl,
+      priceCents: talent.sessionTypes[0]?.priceMinor ?? 0,
+      currency: talent.sessionTypes[0]?.currency ?? 'TRY',
       categories: talent.categories.map(({ category }) => ({ id: category.id, name: category.name, slug: category.slug })),
       sessionTypes: talent.sessionTypes.map((sessionType) => ({
         id: sessionType.id,
         title: sessionType.title,
         durationMinutes: sessionType.durationMinutes,
-        priceMinor: sessionType.priceMinor,
+        priceCents: sessionType.priceMinor,
         currency: sessionType.currency,
       })),
     };
@@ -144,47 +172,39 @@ export class TalentsService {
     return rule;
   }
 
-  async getSlots(talentId: string, sessionTypeId: string, from: string, until: string, timezone: string) {
-    const talent = await this.prisma.talentProfile.findUnique({
-      where: { id: talentId },
+  async getSlotsBySlug(slug: string, from?: string, to?: string) {
+    const talent = await this.prisma.talentProfile.findFirst({
+      where: { slug },
       include: {
-        availabilityRules: { where: { isActive: true } },
-        availabilityBlocks: true,
-        sessionTypes: { where: { id: sessionTypeId, isActive: true } },
+        availabilityWindows: { where: { isActive: true } },
         bookings: { where: { status: { in: [...BLOCKING_BOOKING_STATUSES] as BookingStatus[] } } },
+        sessionTypes: { where: { isActive: true }, orderBy: { priceMinor: 'asc' }, take: 1 },
       },
     });
     if (!talent) throw new NotFoundException();
     if (talent.status !== TalentStatus.APPROVED) throw new BadRequestException({ code: 'TALENT_NOT_APPROVED', message: 'Uzman henüz yayında değil.' });
     const sessionType = talent.sessionTypes[0];
-    if (!sessionType) throw new BadRequestException({ code: 'VALIDATION_ERROR', message: 'Seçilen görüşme tipi aktif değil.' });
-    const fromDate = new Date(from);
-    const untilDate = new Date(until);
+    if (!sessionType) throw new BadRequestException({ code: 'VALIDATION_ERROR', message: 'Aktif görüşme tipi bulunamadı.' });
+    const fromDate = from ? new Date(`${from}T00:00:00.000Z`) : new Date();
+    const toDate = to ? new Date(`${to}T23:59:59.999Z`) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
     const slots: Array<Record<string, unknown>> = [];
-    for (let day = new Date(fromDate); day < untilDate; day = addMinutes(day, 24 * 60)) {
-      const weekday = day.getUTCDay() === 0 ? 7 : day.getUTCDay();
-      const rules = talent.availabilityRules.filter((rule) => rule.weekday === weekday);
-      for (const rule of rules) {
-        const windowStart = this.combineDateAndTime(day, rule.startTime);
-        const windowEnd = this.combineDateAndTime(day, rule.endTime);
-        for (let cursor = new Date(windowStart); addMinutes(cursor, sessionType.durationMinutes) <= windowEnd; cursor = addMinutes(cursor, sessionType.durationMinutes)) {
-          const slotEnd = addMinutes(cursor, sessionType.durationMinutes);
-          const minNoticeBoundary = new Date(Date.now() + talent.minimumNoticeHours * 60 * 60 * 1000);
-          if (cursor < new Date() || cursor < minNoticeBoundary) continue;
-          if (talent.bookings.some((booking) => overlaps(cursor, slotEnd, booking.startsAt, booking.endsAt))) continue;
-          if (talent.availabilityBlocks.some((block) => overlaps(cursor, slotEnd, block.startsAt, block.endsAt))) continue;
-          slots.push({
-            startsAt: cursor.toISOString(),
-            endsAt: slotEnd.toISOString(),
-            durationMinutes: sessionType.durationMinutes,
-            priceMinor: sessionType.priceMinor,
-            currency: sessionType.currency,
-          });
-        }
+    for (const window of talent.availabilityWindows) {
+      if (window.endsAt < fromDate || window.startsAt > toDate) continue;
+      for (let cursor = new Date(window.startsAt); addMinutes(cursor, window.slotDurationMinutes) <= window.endsAt; cursor = addMinutes(cursor, window.slotDurationMinutes + window.bufferMinutes)) {
+        const slotEnd = addMinutes(cursor, window.slotDurationMinutes);
+        if (cursor < new Date()) continue;
+        if (talent.bookings.some((booking) => overlaps(cursor, slotEnd, booking.startsAt, booking.endsAt))) continue;
+        slots.push({
+          startsAt: cursor.toISOString(),
+          endsAt: slotEnd.toISOString(),
+          durationMinutes: window.slotDurationMinutes,
+          priceCents: sessionType.priceMinor,
+          currency: sessionType.currency,
+        });
       }
     }
     slots.sort((a, b) => String(a.startsAt).localeCompare(String(b.startsAt)));
-    return { talentId, sessionTypeId, timezone, slots };
+    return { items: slots };
   }
 
   private async makeUniqueSlug(input: string) {
@@ -195,11 +215,6 @@ export class TalentsService {
       candidate = `${baseSlug}-${counter++}`;
     }
     return candidate;
-  }
-
-  private combineDateAndTime(date: Date, time: string) {
-    const [hours, minutes] = time.split(':').map(Number);
-    return new Date(Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate(), hours, minutes, 0, 0));
   }
 
   private toMinutes(time: string) {

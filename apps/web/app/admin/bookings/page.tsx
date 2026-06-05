@@ -7,7 +7,7 @@ export default function AdminBookingsPage() {
 
   useEffect(() => {
     const token = sessionStorage.getItem('admin_token');
-    fetch(`${process.env.NEXT_PUBLIC_WEB_API_URL ?? 'http://localhost:4000/api'}/admin/bookings`, {
+    fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001/api'}/admin/bookings`, {
       headers: { authorization: `Bearer ${token}` },
     })
       .then((response) => response.json())

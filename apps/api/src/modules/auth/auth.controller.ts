@@ -1,4 +1,4 @@
-import { Body, Controller, Headers, Post, Req, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Headers, Post, Req, UseGuards } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { CurrentUser, Public } from '../common/auth.decorators';
 import { JwtAuthGuard } from '../common/jwt-auth.guard';
@@ -23,6 +23,13 @@ export class AuthController {
   @Post('login')
   login(@Body() dto: LoginDto) {
     return this.authService.login(dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @Get('me')
+  me(@CurrentUser() user: any) {
+    return this.authService.me(user.sub);
   }
 
   @Public()

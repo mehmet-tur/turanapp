@@ -1,51 +1,25 @@
-import { Type } from 'class-transformer';
-import {
-  ArrayMinSize,
-  IsArray,
-  IsBoolean,
-  IsDateString,
-  IsOptional,
-  IsString,
-  MaxLength,
-  ValidateNested,
-} from 'class-validator';
-
-export class BookingConsentDto {
-  @IsString()
-  type!: string;
-
-  @IsString()
-  version!: string;
-
-  @IsBoolean()
-  accepted!: boolean;
-}
+import { IsBoolean, IsDateString, IsInt, IsOptional, IsString, MaxLength, Min } from 'class-validator';
 
 export class BookingQuoteDto {
   @IsString()
-  talentId!: string;
-
-  @IsString()
-  sessionTypeId!: string;
+  talentSlug!: string;
 
   @IsDateString()
   startsAt!: string;
 
-  @IsString()
-  timezone!: string;
+  @IsInt()
+  @Min(15)
+  durationMinutes!: number;
 }
 
 export class BookingCreateDto extends BookingQuoteDto {
   @IsOptional()
   @IsString()
   @MaxLength(1000)
-  customerNote?: string;
+  notes?: string;
 
-  @IsArray()
-  @ArrayMinSize(1)
-  @ValidateNested({ each: true })
-  @Type(() => BookingConsentDto)
-  consents!: BookingConsentDto[];
+  @IsBoolean()
+  acceptedCameraAudioConsent!: boolean;
 }
 
 export class CancelBookingDto {

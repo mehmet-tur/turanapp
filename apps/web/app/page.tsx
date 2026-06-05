@@ -1,8 +1,8 @@
+import { apiFetch } from '../lib/api';
+
 async function getTalents() {
   try {
-    const response = await fetch(`${process.env.WEB_API_URL ?? 'http://localhost:4000/api'}/talents`, { cache: 'no-store' });
-    if (!response.ok) return [];
-    const data = await response.json();
+    const data = await apiFetch<{ items: any[] }>('/talents/featured');
     return data.items ?? [];
   } catch {
     return [];
@@ -34,11 +34,9 @@ export default async function HomePage() {
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 16 }}>
           {talents.map((talent: any) => (
             <div key={talent.id} style={{ background: 'white', borderRadius: 16, padding: 20 }}>
-              <h3>{talent.publicName}</h3>
-              <p>{talent.headline}</p>
-              <p>
-                Başlangıç fiyatı: {(talent.startingPriceMinor / 100).toLocaleString('tr-TR')} {talent.currency}
-              </p>
+              <h3>{talent.displayName}</h3>
+              <p>{talent.title}</p>
+              <p>Başlangıç fiyatı: {(talent.priceCents / 100).toLocaleString('tr-TR')} {talent.currency}</p>
             </div>
           ))}
         </div>

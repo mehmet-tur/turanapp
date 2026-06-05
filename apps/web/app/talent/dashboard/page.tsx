@@ -52,9 +52,11 @@ export default function TalentDashboardPage() {
         ) : (
           <>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px', marginBottom: '32px' }}>
-              <Card style={{ background: 'linear-gradient(135deg, #111827 0%, #374151 100%)', color: 'white', border: 'none' }}>
-                <div style={{ color: '#9ca3af', fontSize: '14px', marginBottom: '8px', fontWeight: 500 }}>Toplam Kazanç (Tahmini)</div>
-                <div style={{ fontSize: '32px', fontWeight: 800, color: 'white' }}>{earningsDisplay} ₺</div>
+              <Card>
+                <div style={{ background: 'linear-gradient(135deg, #111827 0%, #374151 100%)', color: 'white', padding: '16px', margin: '-16px', borderRadius: '16px' }}>
+                  <div style={{ color: '#9ca3af', fontSize: '14px', marginBottom: '8px', fontWeight: 500 }}>Toplam Kazanç (Tahmini)</div>
+                  <div style={{ fontSize: '32px', fontWeight: 800, color: 'white' }}>{earningsDisplay} ₺</div>
+                </div>
               </Card>
               <Card>
                 <div style={{ color: '#6b7280', fontSize: '14px', marginBottom: '8px', fontWeight: 500 }}>Bugünkü Görüşmeler</div>

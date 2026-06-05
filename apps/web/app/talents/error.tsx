@@ -2,7 +2,7 @@
 
 import { AppShell } from '../../components/AppShell';
 
-export default function ErrorBoundary({ error, reset }: { error: Error & { digest?: string }, reset: () => void }) {
+export default function ErrorBoundary({ error: _error, reset }: { error: Error & { digest?: string }, reset: () => void }) {
   return (
     <AppShell>
       <div style={{ padding: '40px', textAlign: 'center', backgroundColor: '#fee2e2', borderRadius: '16px', border: '1px solid #fca5a5', maxWidth: '600px', margin: '40px auto' }}>

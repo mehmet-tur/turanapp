@@ -12,6 +12,7 @@ export class HealthService {
         status: 'ok',
         service: 'unluapp-api',
         db: 'ok',
+        version: process.env.APP_VERSION || '0.2.0-investor-demo',
         timestamp: new Date().toISOString(),
       };
     } catch {
@@ -19,6 +20,7 @@ export class HealthService {
         status: 'degraded',
         service: 'unluapp-api',
         db: 'error',
+        version: process.env.APP_VERSION || '0.2.0-investor-demo',
         timestamp: new Date().toISOString(),
       };
     }

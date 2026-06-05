@@ -1,7 +1,6 @@
 'use client';
 
-import { AppShell } from '../components/AppShell';
-import { Button } from '../components/Button';
+
 
 export default function GlobalError({ error, reset }: { error: Error & { digest?: string }, reset: () => void }) {
   return (

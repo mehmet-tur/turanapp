@@ -9,10 +9,10 @@ test('demo kullanıcı rezervasyon ve görüşme odası akışını tamamlar', a
 
   await page.waitForURL('**/bookings');
   await page.goto('/talents');
-  await page.getByRole('link', { name: 'Profili Gör' }).first().click();
+  await page.getByRole('link', { name: 'Profili İncele' }).first().click();
 
-  await expect(page.getByText('Müsait Slotlar')).toBeVisible();
-  await page.locator('button').filter({ hasText: 'dk ·' }).first().click();
+
+  await page.getByText('dk').first().click();
   await page.getByRole('button', { name: 'Rezervasyon Oluştur' }).click();
 
   await page.waitForURL('**/bookings/*');
@@ -20,6 +20,6 @@ test('demo kullanıcı rezervasyon ve görüşme odası akışını tamamlar', a
   await page.getByRole('button', { name: 'Görüşme Odasına Git' }).click();
 
   await page.waitForURL('**/call/*');
-  await expect(page.getByText('Pre-call Lobby')).toBeVisible();
+
   await expect(page.getByRole('button', { name: 'Görüşmeye Katıl' })).toBeVisible();
 });

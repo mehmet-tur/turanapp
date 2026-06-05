@@ -2,12 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AppShell } from '../../../components/AppShell';
-import { Badge } from '../../../components/Badge';
 import { Button } from '../../../components/Button';
 import { CallControls } from '../../../components/CallControls';
 import { Card } from '../../../components/Card';
 import { PageHeader } from '../../../components/PageHeader';
-import { VideoTile } from '../../../components/VideoTile';
 
 type Phase = 'loading' | 'lobby' | 'in-call';
 

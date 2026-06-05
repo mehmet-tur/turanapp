@@ -85,13 +85,17 @@ export default function AdminDashboardPage() {
 
             <h3 style={{ fontSize: '20px', marginBottom: '20px', color: '#374151' }}>Finansal Göstergeler (Demo)</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '20px', marginBottom: '40px' }}>
-              <Card style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0' }}>
-                <div style={{ color: '#166534', fontSize: '14px', marginBottom: '8px', fontWeight: 600 }}>Tahmini GMV (Hacim)</div>
-                <div style={{ fontSize: '32px', fontWeight: 800, color: '#14532d' }}>{estimatedGMV.toLocaleString('tr-TR')} ₺</div>
+              <Card>
+                <div style={{ backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', padding: '16px', margin: '-16px', borderRadius: '16px' }}>
+                  <div style={{ color: '#166534', fontSize: '14px', marginBottom: '8px', fontWeight: 600 }}>Tahmini GMV (Hacim)</div>
+                  <div style={{ fontSize: '32px', fontWeight: 800, color: '#14532d' }}>{estimatedGMV.toLocaleString('tr-TR')} ₺</div>
+                </div>
               </Card>
-              <Card style={{ backgroundColor: '#eff6ff', border: '1px solid #bfdbfe' }}>
-                <div style={{ color: '#1e40af', fontSize: '14px', marginBottom: '8px', fontWeight: 600 }}>Platform Komisyonu (%15)</div>
-                <div style={{ fontSize: '32px', fontWeight: 800, color: '#1e3a8a' }}>{platformRevenue.toLocaleString('tr-TR')} ₺</div>
+              <Card>
+                <div style={{ backgroundColor: '#eff6ff', border: '1px solid #bfdbfe', padding: '16px', margin: '-16px', borderRadius: '16px' }}>
+                  <div style={{ color: '#1e40af', fontSize: '14px', marginBottom: '8px', fontWeight: 600 }}>Platform Komisyonu (%15)</div>
+                  <div style={{ fontSize: '32px', fontWeight: 800, color: '#1e3a8a' }}>{platformRevenue.toLocaleString('tr-TR')} ₺</div>
+                </div>
               </Card>
               <Card>
                 <div style={{ color: '#6b7280', fontSize: '14px', marginBottom: '8px', fontWeight: 500 }}>Tamamlanan Görüşmeler</div>

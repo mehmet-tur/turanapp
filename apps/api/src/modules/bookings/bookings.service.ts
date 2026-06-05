@@ -258,6 +258,35 @@ export class BookingsService {
     });
   }
 
+  async start(user: any, bookingId: string) {
+    const booking = await this.prisma.booking.findUnique({
+      where: { id: bookingId },
+      include: { talent: { include: { managers: true } }, videoRoom: true },
+    });
+    if (!booking) throw new NotFoundException();
+    if (!this.permissions.canAccessBooking({ id: user.sub, roles: user.roles }, booking)) {
+      throw new ForbiddenException();
+    }
+    const updated =
+      booking.status === BookingStatus.CONFIRMED
+        ? await this.prisma.booking.update({
+            where: { id: bookingId },
+            data: { status: BookingStatus.IN_PROGRESS },
+          })
+        : booking;
+    return {
+      bookingId: updated.id,
+      status: updated.status,
+      video: {
+        provider: 'MOCK',
+        channelName: booking.videoRoom?.channelName ?? `booking_${bookingId}`,
+        token: updated.videoJoinToken ?? `mock-user-token-${bookingId}`,
+        uid: user.sub,
+        expiresAt: updated.endsAt,
+      },
+    };
+  }
+
   private async validateBookingInput(userId: string, dto: BookingQuoteDto) {
     const talent = await this.prisma.talentProfile.findFirst({
       where: { slug: dto.talentSlug },

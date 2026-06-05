@@ -68,7 +68,7 @@ async function main() {
 
   const admin = await upsertUser({ email: 'admin@unluapp.local', firstName: 'Admin', lastName: 'Kullanıcı', roles: [UserRole.CUSTOMER, UserRole.ADMIN] });
   const demoUser = await upsertUser({ email: 'demo@unluapp.local', firstName: 'Demo', lastName: 'User', roles: [UserRole.CUSTOMER] });
-  const ayseUser = await upsertUser({ email: 'ayse-yildiz@unluapp.local', firstName: 'Ayşe', lastName: 'Yıldız', roles: [UserRole.CUSTOMER, UserRole.TALENT] });
+  const ayseUser = await upsertUser({ email: 'talent@unluapp.local', firstName: 'Ayşe', lastName: 'Yıldız', roles: [UserRole.CUSTOMER, UserRole.TALENT] });
   const mertUser = await upsertUser({ email: 'mert-kaya@unluapp.local', firstName: 'Mert', lastName: 'Kaya', roles: [UserRole.CUSTOMER, UserRole.TALENT] });
   const zeynepUser = await upsertUser({ email: 'zeynep-demir@unluapp.local', firstName: 'Zeynep', lastName: 'Demir', roles: [UserRole.CUSTOMER, UserRole.TALENT] });
 

@@ -28,6 +28,11 @@ export class AdminController {
     return this.adminService.listPendingTalents();
   }
 
+  @Get('talents/pending')
+  pendingTalents() {
+    return this.adminService.listOnlyPendingTalents();
+  }
+
   @Post('talents/:id/approve')
   approve(@CurrentUser() user: any, @Param('id') id: string) {
     return this.adminService.reviewTalent(user.sub, id, { decision: 'APPROVE' });
@@ -46,6 +51,11 @@ export class AdminController {
   @Get('bookings')
   bookings() {
     return this.adminService.listBookings();
+  }
+
+  @Post('bookings/:id/status')
+  setBookingStatus(@Param('id') id: string, @Body() dto: { status: string }) {
+    return this.adminService.setBookingStatus(id, dto.status);
   }
 
   @Get('users')

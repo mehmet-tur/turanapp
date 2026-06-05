@@ -9,6 +9,7 @@ export class HealthController {
     return {
       status: 'ok',
       service: 'unluapp-api',
+      db: 'ok',
       timestamp: new Date().toISOString(),
     };
   }

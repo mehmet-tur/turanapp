@@ -1,5 +1,5 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
-import { TalentStatus, UserRole } from '@prisma/client';
+import { BookingStatus, TalentStatus, UserRole } from '@prisma/client';
 import { AuditService } from '../common/audit.service';
 import { PrismaService } from '../common/prisma.service';
 
@@ -54,6 +54,13 @@ export class AdminService {
     });
   }
 
+  async listOnlyPendingTalents() {
+    return this.prisma.talentProfile.findMany({
+      where: { status: TalentStatus.PENDING_REVIEW },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async reviewTalent(adminId: string, talentId: string, dto: { decision: 'APPROVE' | 'REJECT'; reason?: string }) {
     const talent = await this.prisma.talentProfile.findUnique({ where: { id: talentId } });
     if (!talent) throw new NotFoundException();
@@ -89,6 +96,13 @@ export class AdminService {
     return this.prisma.user.findMany({
       select: { id: true, email: true, firstName: true, lastName: true, roles: true, createdAt: true },
       orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async setBookingStatus(bookingId: string, status: string) {
+    return this.prisma.booking.update({
+      where: { id: bookingId },
+      data: { status: status as BookingStatus },
     });
   }
 }
